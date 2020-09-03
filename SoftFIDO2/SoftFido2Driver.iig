@@ -1,0 +1,36 @@
+//
+//  SoftFIDO2.iig
+//  SoftFIDO2
+//
+//  Created by Eddie Hua on 2020/9/1.
+//  Copyright © 2020 GoTrustID. All rights reserved.
+//
+
+#ifndef SoftFIDO2_h
+#define SoftFIDO2_h
+
+#include <Availability.h>
+#include <DriverKit/IOService.iig>
+
+class IOUserClient;
+
+class SoftFido2Driver: public IOService
+{
+    IODispatchQueue* mWorkQueue = nullptr;
+    //IOWorkLoop *_workLoop = nullptr;    // 用 IODispatchQueue 取代
+    //   (START) workLoop->addEventSource(_commandGate)
+    //   (STOP) workLoop->removeEventSource(_commandGate);
+    
+public:
+    virtual bool init() override;
+    virtual void free() override;
+    virtual kern_return_t Start(IOService * provider) override;
+    
+    virtual kern_return_t Stop(IOService *provider) override;
+
+    virtual kern_return_t NewUserClient(uint32_t type,
+                                        IOUserClient **userClient) override;
+    //
+};
+
+#endif /* SoftFIDO2_h */

@@ -1,0 +1,84 @@
+//
+//  ViewController.m
+//  SoftFido2App
+//
+//  Created by Eddie Hua on 2020/9/3.
+//  Copyright © 2020 GoTrustID. All rights reserved.
+//
+
+#import "ViewController.h"
+#import <SystemExtensions/SystemExtensions.h>
+
+@interface ViewController() <OSSystemExtensionRequestDelegate>
+@property (nonatomic) NSTextView* textView;
+@property (nonatomic) NSButton* btnEnable;
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    _textView = [[NSTextView alloc] initWithFrame:self.view.bounds];
+    [self.view addSubview:_textView];
+    // Do any additional setup after loading the view.
+    [self activate];
+}
+
+
+- (void)setRepresentedObject:(id)representedObject {
+    [super setRepresentedObject:representedObject];
+
+    // Update the view, if already loaded.
+}
+
+#pragma mark -
+- (void) activate {
+    NSLog(@"activate");
+    OSSystemExtensionRequest* request = [OSSystemExtensionRequest activationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
+    request.delegate = self;
+    [[OSSystemExtensionManager sharedManager] submitRequest:request];
+}
+
+- (void) deactivate {
+    NSLog(@"deactivate");
+    OSSystemExtensionRequest* request = [OSSystemExtensionRequest deactivationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
+    request.delegate = self;
+    [[OSSystemExtensionManager sharedManager] submitRequest:request];
+}
+#pragma mark - OSSystemExtensionRequestDelegate
+// 決定要替換還是要無視，開發中 一律 replace
+- (OSSystemExtensionReplacementAction)request:(OSSystemExtensionRequest *)request actionForReplacingExtension:(OSSystemExtensionProperties *)existing withExtension:(OSSystemExtensionProperties *)ext {
+    NSLog(@"request: actionForReplacingExtension: withExtension");
+    NSLog(@"existing = %@", existing.description);
+    NSLog(@"ext = %@", ext.description);
+    // Sample 是比較新舊版本後，決定 Replace or Cancel
+    
+    return OSSystemExtensionReplacementActionReplace;
+//    return OSSystemExtensionReplacementActionCancel;
+}
+
+// 需要使用者 Approval 時，就會進來
+- (void)requestNeedsUserApproval:(OSSystemExtensionRequest *)request {
+    NSLog(@"requestNeedsUserApproval");
+}
+
+// 完成 Request 時…
+- (void)request:(OSSystemExtensionRequest *)request didFinishWithResult:(OSSystemExtensionRequestResult)result {
+    NSLog(@"didFinishWithResult : %ld", result);
+
+    //OSSystemExtensionRequestCompleted,
+    //OSSystemExtensionRequestWillCompleteAfterReboot,
+}
+
+// Request 失敗
+- (void)request:(OSSystemExtensionRequest *)request didFailWithError:(NSError *)error {
+    NSLog(@"didFailWithError localizedDescription : %@", error.localizedDescription);
+    NSLog(@"didFailWithError description : %@", error.description);
+    NSLog(@"didFailWithError debugDescription : %@", error.debugDescription);
+    
+    //NSLog(@"didFailWithError localizedFailureReason : %@", error.localizedFailureReason);
+    //NSLog(@"didFailWithError localizedRecoverySuggestion : %@", error.localizedRecoverySuggestion);
+    _textView.string = error.localizedDescription;
+}
+@end
