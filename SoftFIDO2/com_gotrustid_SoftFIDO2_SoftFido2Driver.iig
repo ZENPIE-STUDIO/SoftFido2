@@ -14,7 +14,7 @@
 
 class IOUserClient;
 
-class SoftFido2Driver: public IOService
+class com_gotrustid_SoftFIDO2_SoftFido2Driver: public IOService
 {
     IODispatchQueue* mWorkQueue = nullptr;
     //IOWorkLoop *_workLoop = nullptr;    // 用 IODispatchQueue 取代

@@ -22,7 +22,6 @@ void SoftFido2UserClient::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
 }
 
-
 kern_return_t IMPL(SoftFido2UserClient, Start) {
     kern_return_t ret = kIOReturnSuccess;
     ret = Start(provider, SUPERDISPATCH);
@@ -41,6 +40,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                   const IOUserClientMethodDispatch* dispatch,
                                                   OSObject* target,
                                                   void* reference) {
+    
     kern_return_t ret = kIOReturnSuccess;
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod");
     return ret;

@@ -12,23 +12,26 @@
 #include <DriverKit/IOLib.h>
 #include <DriverKit/IODispatchQueue.h>
 #include "UserKernelShared.h"
-#include "SoftFido2Driver.h"
+#include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 
 #define LOG_PREFIX "[SoftFido2][Driver] "
 
 static const char* kDispatchQueueName = "SoftFidoQueue";
 
-bool SoftFido2Driver::init() {
+bool com_gotrustid_SoftFIDO2_SoftFido2Driver::init() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "init");
+    if (!super::init()) {
+        return false;
+    }
     return true;
 }
 
-void SoftFido2Driver::free() {
+void com_gotrustid_SoftFIDO2_SoftFido2Driver::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
 }
 
 
-kern_return_t IMPL(SoftFido2Driver, Start) {
+kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
     kern_return_t ret = kIOReturnSuccess;
     ret = Start(provider, SUPERDISPATCH);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start");
@@ -41,16 +44,17 @@ kern_return_t IMPL(SoftFido2Driver, Start) {
 //    workQueue->DispatchSync(^{
 //
 //    });
+    RegisterService();
     return ret;
 }
 
-kern_return_t IMPL(SoftFido2Driver, Stop) {
+kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Stop) {
     kern_return_t ret = kIOReturnSuccess;
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Stop");
     return ret;
 }
 
-kern_return_t IMPL(SoftFido2Driver, NewUserClient) {
+kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, NewUserClient) {
 //kern_return_t SoftFIDO2::NewUserClient(uint32_t type, IOUserClient **userClient) {    // 這個沒辦法compile
     kern_return_t ret = kIOReturnSuccess;
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "NewUserClient");

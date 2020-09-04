@@ -20,6 +20,20 @@
                ReferencedContainer = "container:SoftFIDO2.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "27038DAB24FE4B8D002F7F77"
+               BuildableName = "com.gotrustid.SoftFIDO2.dext"
+               BlueprintName = "SoftFIDO2"
+               ReferencedContainer = "container:SoftFIDO2.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

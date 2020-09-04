@@ -76,6 +76,10 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
         return nullptr;
     }
 
+    OSDictionarySetValue(dictionary, "RegisterService", kOSBooleanTrue);
+    OSDictionarySetValue(dictionary, "HIDDefaultBehavior", kOSBooleanTrue);
+    OSDictionarySetValue(dictionary, "AppleVendorSupported", kOSBooleanTrue);
+    
     if (auto usagePage = OSNumber::withNumber(static_cast<uint32_t>(FIDO_USAGE_PAGE), 32)) {
         OSDictionarySetValue(dictionary, kIOHIDPrimaryUsagePageKey, usagePage);
         usagePage->release();
@@ -85,15 +89,15 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
         OSDictionarySetValue(dictionary, kIOHIDPrimaryUsageKey, usage);
         usage->release();
     }
-//    if (auto manufacturer = OSString::withCString("GoTrustID Inc.")) {
-//        OSDictionarySetValue(dictionary, kIOHIDManufacturerKey, manufacturer);
-//        manufacturer->release();
-//    }
+    if (auto manufacturer = OSString::withCString("GoTrustID Inc.")) {
+        OSDictionarySetValue(dictionary, kIOHIDManufacturerKey, manufacturer);
+        manufacturer->release();
+    }
     // Product Key
-//    if (auto product = OSString::withCString("")) {
-//        OSDictionarySetValue(dictionary, kIOHIDProductKey, product);
-//        product->release();
-//    }
+    if (auto product = OSString::withCString("SoftFido2Driver (DriverKit)")) {
+        OSDictionarySetValue(dictionary, kIOHIDProductKey, product);
+        product->release();
+    }
     // Serial Number
 //    if (auto serialNumber = OSString::withCString("")) {
 //        OSDictionarySetValue(dictionary, kIOHIDSerialNumberKey, serialNumber);

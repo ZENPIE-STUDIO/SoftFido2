@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import <SystemExtensions/SystemExtensions.h>
+#import "SoftFido2Lib.h"
 
 @interface ViewController() <OSSystemExtensionRequestDelegate>
 @property (nonatomic) NSTextView* textView;
@@ -35,7 +36,9 @@
 #pragma mark -
 - (void) activate {
     NSLog(@"activate");
-    OSSystemExtensionRequest* request = [OSSystemExtensionRequest activationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
+    NSString* extBundleId = @"com.gotrustid.SoftFIDO2";
+//    NSString* extBundleId = @"org.pqrs.Karabiner-DriverKit-VirtualHIDDevice";
+    OSSystemExtensionRequest* request = [OSSystemExtensionRequest activationRequestForExtension:extBundleId queue:dispatch_get_main_queue()];
     request.delegate = self;
     [[OSSystemExtensionManager sharedManager] submitRequest:request];
 }
@@ -45,6 +48,11 @@
     OSSystemExtensionRequest* request = [OSSystemExtensionRequest deactivationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
     request.delegate = self;
     [[OSSystemExtensionManager sharedManager] submitRequest:request];
+}
+
+- (void) afterActivateSuccess {
+    NSLog(@"afterActivateSuccess");
+    [SoftFido2Lib test];
 }
 #pragma mark - OSSystemExtensionRequestDelegate
 // 決定要替換還是要無視，開發中 一律 replace
@@ -65,10 +73,18 @@
 
 // 完成 Request 時…
 - (void)request:(OSSystemExtensionRequest *)request didFinishWithResult:(OSSystemExtensionRequestResult)result {
-    NSLog(@"didFinishWithResult : %ld", result);
-
-    //OSSystemExtensionRequestCompleted,
-    //OSSystemExtensionRequestWillCompleteAfterReboot,
+    switch (result) {
+        case OSSystemExtensionRequestCompleted:
+            NSLog(@"didFinishWithResult : successfully completed");
+            [self afterActivateSuccess];
+            break;
+        case OSSystemExtensionRequestWillCompleteAfterReboot:
+            NSLog(@"didFinishWithResult : successfully completed after a reboot");
+            break;
+        default:
+            NSLog(@"didFinishWithResult : %ld", result);
+            break;
+    }
 }
 
 // Request 失敗
