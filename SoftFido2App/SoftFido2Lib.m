@@ -12,7 +12,7 @@
 
 + (void) tryGetMatchingServices {
     io_iterator_t * iterator = NULL;
-    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserResources"), &iterator);
+    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserService"), &iterator);
     if (iterator != NULL) {
         io_service_t serviceA = NULL;
         while ((serviceA = IOIteratorNext(iterator)) != IO_OBJECT_NULL) {
@@ -29,23 +29,26 @@
     NSLog(@"SoftFido2Lib - test");
     [SoftFido2Lib tryGetMatchingServices];
     const char* name0 = "SoftFido2Driver";
-    const char* name1 = "com_gotrustid_SoftFIDO2_SoftFido2Driver";
-    const char* name2 = "com.gotrustid.SoftFIDO2.SoftFido2Driver";
+    const char* name1 = "com.gotrustid.SoftFIDO2.SoftFido2Driver";
+    const char* name2 = "SoftFido2Device";
     // 找得到名單:
     // (IOServiceNameMatching) org_pqrs_Karabiner_DriverKit_VirtualHIDDeviceRoot
-    //const char* name2 = "SoftU2FDriver";  // 這個看得到
+    // (IOServiceMatching) SoftU2FDriver;  // 這個看得到
+    mach_port_t masterPort = kIOMasterPortDefault;
+    //IOMasterPort(MACH_PORT_NULL, &masterPort);
+    
     io_connect_t connect = 0;
-    io_service_t service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching(name0));
-    io_service_t service1 = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching(name1));
-    io_service_t service2 = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching(name2));
+    io_service_t service = IOServiceGetMatchingService(masterPort, IOServiceMatching(name0));
+    io_service_t service1 = IOServiceGetMatchingService(masterPort, IOServiceMatching(name1));
+    io_service_t service2 = IOServiceGetMatchingService(masterPort, IOServiceMatching(name2));
     if (service) NSLog(@"Found : %s", name0);
     if (service1) NSLog(@"Found : %s", name1);
     if (service2) NSLog(@"Found : %s", name2);
 
     
-    service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching(name0));
-    service1 = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching(name1));
-    service2 = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching(name2));
+    service = IOServiceGetMatchingService(masterPort, IOServiceNameMatching(name0));
+    service1 = IOServiceGetMatchingService(masterPort, IOServiceNameMatching(name1));
+    service2 = IOServiceGetMatchingService(masterPort, IOServiceNameMatching(name2));
     if (service) NSLog(@"[NAME] Found : %s", name0);
     if (service1) NSLog(@"[NAME] Found : %s", name1);
     if (service2) NSLog(@"[NAME] Found : %s", name2);
