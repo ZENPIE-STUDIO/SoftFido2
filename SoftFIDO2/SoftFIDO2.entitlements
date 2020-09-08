@@ -21,7 +21,5 @@
 	</dict>
 	<key>com.apple.developer.hid.virtual.device</key>
 	<true/>
-<!--	<key>com.apple.developer.system-extension.redistributable</key>-->
-<!--	<true/>-->
 </dict>
 </plist>

@@ -89,10 +89,26 @@
 
 // Request 失敗
 - (void)request:(OSSystemExtensionRequest *)request didFailWithError:(NSError *)error {
-    NSLog(@"didFailWithError localizedDescription : %@", error.localizedDescription);
-    NSLog(@"didFailWithError description : %@", error.description);
-    NSLog(@"didFailWithError debugDescription : %@", error.debugDescription);
-    
+    //NSLog(@"didFailWithError description : %@", error.description);
+    //NSLog(@"didFailWithError debugDescription : %@", error.debugDescription);
+    switch (error.code) {
+        case OSSystemExtensionErrorUnknown: NSLog(@"didFailWithError: Unknown"); break;
+        case OSSystemExtensionErrorMissingEntitlement: NSLog(@"didFailWithError: MissingEntitlement"); break;
+        case OSSystemExtensionErrorUnsupportedParentBundleLocation: NSLog(@"didFailWithError: UnsupportedParentBundleLocation"); break;
+        case OSSystemExtensionErrorExtensionNotFound: NSLog(@"didFailWithError: ExtensionNotFound"); break;
+        case OSSystemExtensionErrorExtensionMissingIdentifier: NSLog(@"didFailWithError: ExtensionMissingIdentifier"); break;
+        case OSSystemExtensionErrorDuplicateExtensionIdentifer: NSLog(@"didFailWithError: DuplicateExtensionIdentifer"); break;
+        case OSSystemExtensionErrorUnknownExtensionCategory: NSLog(@"didFailWithError: UnknownExtensionCategory"); break;
+        case OSSystemExtensionErrorCodeSignatureInvalid: NSLog(@"didFailWithError: CodeSignatureInvalid"); break;
+        case OSSystemExtensionErrorValidationFailed: NSLog(@"didFailWithError: ValidationFailed"); break;
+        case OSSystemExtensionErrorForbiddenBySystemPolicy: NSLog(@"didFailWithError: ForbiddenBySystemPolicy"); break;
+        case OSSystemExtensionErrorRequestCanceled: NSLog(@"didFailWithError: RequestCanceled"); break;
+        case OSSystemExtensionErrorRequestSuperseded: NSLog(@"didFailWithError: RequestSuperseded"); break;
+        case OSSystemExtensionErrorAuthorizationRequired: NSLog(@"didFailWithError: AuthorizationRequired"); break;
+        default:
+            NSLog(@"didFailWithError localizedDescription : %@", error.localizedDescription);
+            break;
+    }
     //NSLog(@"didFailWithError localizedFailureReason : %@", error.localizedFailureReason);
     //NSLog(@"didFailWithError localizedRecoverySuggestion : %@", error.localizedRecoverySuggestion);
     _textView.string = error.localizedDescription;

@@ -12,7 +12,7 @@
 
 + (void) tryGetMatchingServices {
     io_iterator_t * iterator = NULL;
-    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserService"), &iterator);
+    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserServer"), &iterator);
     if (iterator != NULL) {
         io_service_t serviceA = NULL;
         while ((serviceA = IOIteratorNext(iterator)) != IO_OBJECT_NULL) {
@@ -29,8 +29,8 @@
     NSLog(@"SoftFido2Lib - test");
     [SoftFido2Lib tryGetMatchingServices];
     const char* name0 = "SoftFido2Driver";
-    const char* name1 = "com.gotrustid.SoftFIDO2.SoftFido2Driver";
-    const char* name2 = "SoftFido2Device";
+    const char* name1 = "com.gotrustid.SoftFIDO2";
+    const char* name2 = "com.gotrustid.SoftFIDO2.SoftFido2Driver";
     // 找得到名單:
     // (IOServiceNameMatching) org_pqrs_Karabiner_DriverKit_VirtualHIDDeviceRoot
     // (IOServiceMatching) SoftU2FDriver;  // 這個看得到

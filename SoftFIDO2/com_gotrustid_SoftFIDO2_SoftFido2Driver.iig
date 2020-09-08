@@ -29,7 +29,7 @@ public:
     virtual kern_return_t Stop(IOService *provider) override;
 
     virtual kern_return_t NewUserClient(uint32_t type,
-                                        IOUserClient **userClient) override;
+                                        IOUserClient** userClient) override;
     //
 };
 
