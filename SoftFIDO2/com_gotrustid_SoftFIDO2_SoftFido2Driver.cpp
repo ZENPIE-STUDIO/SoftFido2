@@ -8,6 +8,7 @@
 
 #include <os/log.h>
 
+#include <DriverKit/IOUserClient.h>
 #include <DriverKit/IODispatchQueue.h>
 #include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 
@@ -64,11 +65,11 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, NewUserClient) {
 
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "UserClient is created");
 
-//    *userClient = OSDynamicCast(IOUserClient, client);
+    *userClient = OSDynamicCast(IOUserClient, client);
     if (!*userClient) {
-      os_log(OS_LOG_DEFAULT, LOG_PREFIX "OSDynamicCast failed");
-      client->release();
-      return kIOReturnError;
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "OSDynamicCast failed");
+        client->release();
+        return kIOReturnError;
     }
     return ret;
 }

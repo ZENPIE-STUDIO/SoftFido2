@@ -30,7 +30,7 @@
     //[SoftFido2Lib tryGetMatchingServices];
     const char* name0 = "com_gotrustid_SoftFIDO2_SoftFido2Driver";
     const char* name1 = "com.gotrustid.SoftFIDO2";
-    const char* name2 = "com_gotrustid_SoftFIDO2_SoftFido2Driver";
+    const char* name2 = "org_pqrs_Karabiner_DriverKit_VirtualHIDDeviceRoot";
     // 找得到名單:
     // (IOServiceNameMatching) org_pqrs_Karabiner_DriverKit_VirtualHIDDeviceRoot
     // (IOServiceMatching) SoftU2FDriver;  // 這個看得到
@@ -66,8 +66,11 @@
     }
     IOObjectRelease(service);
     service = IO_OBJECT_NULL;
-
+    NSLog(@"Success");
+    //return connect;
+    return;
 fail:
+    NSLog(@"Failed!");
     if (service)
         IOObjectRelease(service);
     if (connect)
