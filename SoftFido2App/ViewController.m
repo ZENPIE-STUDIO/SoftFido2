@@ -42,7 +42,7 @@
     [self.view addSubview:_btnDeactivate];
     //
     fPosY -= (fButtonHeight + fMargin);
-    _btnTry = [NSButton buttonWithTitle:@"Try" target:self action:@selector(afterActivateSuccess)];
+    _btnTry = [NSButton buttonWithTitle:@"Try" target:self action:@selector(trySomething)];
     _btnTry.frame = NSMakeRect(fMargin, fPosY, fButtonWidth, fButtonHeight);
     [self.view addSubview:_btnTry];
     
@@ -78,8 +78,8 @@
     [[OSSystemExtensionManager sharedManager] submitRequest:request];
 }
 
-- (void) afterActivateSuccess {
-    NSLog(@"afterActivateSuccess");
+- (void) trySomething {
+    NSLog(@"trySomething");
     [SoftFido2Lib test];
 }
 #pragma mark - OSSystemExtensionRequestDelegate
@@ -106,7 +106,7 @@
     switch (result) {
         case OSSystemExtensionRequestCompleted:
             NSLog(@"didFinishWithResult : successfully completed");
-            [self afterActivateSuccess];
+            //[self afterActivateSuccess];
             break;
         case OSSystemExtensionRequestWillCompleteAfterReboot:
             NSLog(@"didFinishWithResult : successfully completed after a reboot");

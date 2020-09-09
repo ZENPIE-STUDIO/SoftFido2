@@ -12,5 +12,21 @@
 	<true/>
 	<key>com.apple.developer.driverkit.transport.hid</key>
 	<true/>
+    <key>com.apple.developer.driverkit.transport.usb</key>
+    <dict>
+        <key>idVendor</key>
+        <integer>12963</integer>
+        <key>idProductArray</key>
+        <array>
+            <integer>20737</integer>
+            <integer>20738</integer>
+            <integer>20739</integer>
+        </array>
+    </dict>
+    <!--以下項目 加了會造成無法 Match到-->
+<!--    <key>com.apple.developer.hid.virtual.device</key>-->
+<!--    <true/>-->
+<!--    <key>com.apple.developer.system-extension.redistributable</key>-->
+<!--    <true/>-->
 </dict>
 </plist>
