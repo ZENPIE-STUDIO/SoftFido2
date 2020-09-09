@@ -18,8 +18,16 @@
 	<dict>
 		<key>idVendor</key>
 		<integer>12963</integer>
+        <key>idProductArray</key>
+        <array>
+            <integer>20737</integer>
+            <integer>20738</integer>
+            <integer>20739</integer>
+        </array>
 	</dict>
 	<key>com.apple.developer.hid.virtual.device</key>
 	<true/>
+    <key>com.apple.developer.system-extension.redistributable</key>
+    <true/>
 </dict>
 </plist>

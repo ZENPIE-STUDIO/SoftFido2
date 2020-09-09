@@ -40,10 +40,6 @@
 			<string>com.gotrustid.SoftFIDO2</string>
 			<key>UserClientProperties</key>
 			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>SoftFido2UserClient</string>
 				<key>Fido2HidProperties</key>
 				<dict>
 					<key>IOClass</key>
@@ -51,6 +47,10 @@
 					<key>IOUserClass</key>
 					<string>SoftFido2Device</string>
 				</dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>SoftFido2UserClient</string>
 			</dict>
 		</dict>
 	</dict>

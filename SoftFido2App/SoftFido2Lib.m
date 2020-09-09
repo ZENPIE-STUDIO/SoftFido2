@@ -10,27 +10,27 @@
 
 @implementation SoftFido2Lib
 
-+ (void) tryGetMatchingServices {
-    io_iterator_t * iterator = NULL;
-    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserServer"), &iterator);
-    if (iterator != NULL) {
-        io_service_t serviceA = NULL;
-        while ((serviceA = IOIteratorNext(iterator)) != IO_OBJECT_NULL) {
-            io_name_t object_name;
-            IOObjectGetClass(serviceA, object_name);
-            NSLog(@"object_name = %s", object_name);
-            IOObjectRelease(serviceA);
-        }
-        IOObjectRelease(iterator);
-    }
-}
+//+ (void) tryGetMatchingServices {
+//    io_iterator_t * iterator = NULL;
+//    kern_return_t retX = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("IOUserServer"), &iterator);
+//    if (iterator != NULL) {
+//        io_service_t serviceA = NULL;
+//        while ((serviceA = IOIteratorNext(iterator)) != IO_OBJECT_NULL) {
+//            io_name_t object_name;
+//            IOObjectGetClass(serviceA, object_name);
+//            NSLog(@"object_name = %s", object_name);
+//            IOObjectRelease(serviceA);
+//        }
+//        IOObjectRelease(iterator);
+//    }
+//}
 
 + (void) test {
     NSLog(@"SoftFido2Lib - test");
-    [SoftFido2Lib tryGetMatchingServices];
-    const char* name0 = "SoftFido2Driver";
+    //[SoftFido2Lib tryGetMatchingServices];
+    const char* name0 = "com_gotrustid_SoftFIDO2_SoftFido2Driver";
     const char* name1 = "com.gotrustid.SoftFIDO2";
-    const char* name2 = "com.gotrustid.SoftFIDO2.SoftFido2Driver";
+    const char* name2 = "com_gotrustid_SoftFIDO2_SoftFido2Driver";
     // 找得到名單:
     // (IOServiceNameMatching) org_pqrs_Karabiner_DriverKit_VirtualHIDDeviceRoot
     // (IOServiceMatching) SoftU2FDriver;  // 這個看得到
