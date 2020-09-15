@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>IOKitPersonalities</key>
@@ -40,6 +40,10 @@
 			<string>com.gotrustid.SoftFIDO2</string>
 			<key>UserClientProperties</key>
 			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>SoftFido2UserClient</string>
 				<key>Fido2HidProperties</key>
 				<dict>
 					<key>IOClass</key>
@@ -47,10 +51,6 @@
 					<key>IOUserClass</key>
 					<string>SoftFido2Device</string>
 				</dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>SoftFido2UserClient</string>
 			</dict>
 		</dict>
 	</dict>

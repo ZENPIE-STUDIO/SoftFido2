@@ -9,8 +9,10 @@
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/OSCollections.h>
+#include <HIDDriverKit/IOHIDInterface.h>
 #include <HIDDriverKit/IOHIDDeviceKeys.h>
 #include <HIDDriverKit/IOHIDUsageTables.h>
+#include "u2f_hid.h"
 #include "UserKernelShared.h"
 #include "SoftFido2Device.h"
 #include "SoftFido2UserClient.h"
@@ -21,7 +23,6 @@
 struct SoftFido2Device_IVars {
     SoftFido2UserClient* provider;
 };
-
 
 bool SoftFido2Device::init() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "init");
@@ -39,14 +40,46 @@ void SoftFido2Device::free() {
 }
 
 #pragma mark - IOHIDDevice
+//kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
+//                                            IOMemoryDescriptor * report,
+//                                            uint32_t reportLength,
+//                                            IOHIDReportType reportType,
+//                                            IOOptionBits options) {
+//    kern_return_t ret = kIOReturnSuccess;
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleReport");
+//    return ret;
+//}
+//
+//kern_return_t SoftFido2Device::getReport(IOMemoryDescriptor * report,
+//                                        IOHIDReportType reportType,
+//                                        IOOptionBits options,
+//                                        uint32_t completionTimeout,
+//                                        OSAction * action) {
+//    kern_return_t ret = kIOReturnSuccess;
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "getReport");
+//    return ret;
+//}
+
 kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
                                          IOHIDReportType reportType,
                                          IOOptionBits options,
                                          uint32_t completionTimeout,
                                          OSAction* action) {
     kern_return_t ret = kIOReturnSuccess;
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport");
-    // TODO: 這裡要用 User Client 去處理接收到的資料
+    switch (reportType) {
+        case kIOHIDReportTypeInput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Input)"); break;
+        case kIOHIDReportTypeOutput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Output)"); break;
+        case kIOHIDReportTypeFeature: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Feature)"); break;
+        case kIOHIDReportTypeCount: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Count)"); break;
+    }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
+    // 用 User Client 去處理接收到的資料
+    SoftFido2UserClient *userClient = ivars->provider;
+    if (userClient != nullptr) {
+        ret = userClient->frameReceived(report, action);
+    }
+    // Sleep for a bit to make the HID conformance tests happy.
+    IOSleep(1); // 1ms
     return ret;
 }
 
@@ -55,16 +88,15 @@ bool SoftFido2Device::handleStart(IOService* provider) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleStart");
     ivars->provider = OSDynamicCast(SoftFido2UserClient, provider);
     if (!ivars->provider) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "provider is not SoftFido2UserClient");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleStart > provider is not SoftFido2UserClient");
         return false;
     }
     
     if (!super::handleStart(provider)) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "super::handleStart failed");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleStart > super::handleStart failed");
         return false;
     }
-    // TODO:
-    //ivars->provider->
+    //ivars->provider-> 不用 setReady
     return true;
 }
 
@@ -76,9 +108,10 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
         return nullptr;
     }
 
+    // Set kIOHIDRegisterServiceKey in order to call registerService in IOHIDDevice::start.
     OSDictionarySetValue(dictionary, "RegisterService", kOSBooleanTrue);
-    OSDictionarySetValue(dictionary, "HIDDefaultBehavior", kOSBooleanTrue);
-    OSDictionarySetValue(dictionary, "AppleVendorSupported", kOSBooleanTrue);
+//    OSDictionarySetValue(dictionary, "HIDDefaultBehavior", kOSBooleanTrue);
+//    OSDictionarySetValue(dictionary, "AppleVendorSupported", kOSBooleanTrue);
     
     if (auto usagePage = OSNumber::withNumber(static_cast<uint32_t>(FIDO_USAGE_PAGE), 32)) {
         OSDictionarySetValue(dictionary, kIOHIDPrimaryUsagePageKey, usagePage);
@@ -99,32 +132,30 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
         product->release();
     }
     // Serial Number
-//    if (auto serialNumber = OSString::withCString("")) {
-//        OSDictionarySetValue(dictionary, kIOHIDSerialNumberKey, serialNumber);
-//        serialNumber->release();
-//    }
+    if (auto serialNumber = OSString::withCString("123")) {
+        OSDictionarySetValue(dictionary, kIOHIDSerialNumberKey, serialNumber);
+        serialNumber->release();
+    }
     // Version
-//    if (auto version = OSNumber::withNumber(static_cast<uint32_t>(0), 32)) {
-//        OSDictionarySetValue(dictionary, kIOHIDVersionNumberKey, version);
-//        version->release();
-//    }
-
+    if (auto version = OSNumber::withNumber(static_cast<uint32_t>(0), 32)) {
+        OSDictionarySetValue(dictionary, kIOHIDVersionNumberKey, version);
+        version->release();
+    }
     // Vendor ID
-//    if (auto vendorId = OSNumber::withNumber(static_cast<uint32_t>(0x16c0), 32)) {
-//        OSDictionarySetValue(dictionary, kIOHIDVendorIDKey, vendorId);
-//        vendorId->release();
-//    }
+    if (auto vendorId = OSNumber::withNumber(static_cast<uint32_t>(12963), 32)) {
+        OSDictionarySetValue(dictionary, kIOHIDVendorIDKey, vendorId);
+        vendorId->release();
+    }
     // Product ID?
-//    if (auto productId = OSNumber::withNumber(static_cast<uint32_t>(0x27da), 32)) {
-//        OSDictionarySetValue(dictionary, kIOHIDProductIDKey, productId);
-//        productId->release();
-//    }
-    
-    return nullptr;
+    if (auto productId = OSNumber::withNumber(static_cast<uint32_t>(20737), 32)) {
+        OSDictionarySetValue(dictionary, kIOHIDProductIDKey, productId);
+        productId->release();
+    }
+    return dictionary;
 }
 
 OSData* SoftFido2Device::newReportDescriptor(void) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "newReportDescriptor");
-
-    return OSData::withBytes(kFido2HidReportDescriptor, sizeof(kFido2HidReportDescriptor));
+    const size_t kSizeOfReportDescriptor = sizeof(u2fhid_report_descriptor);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "newReportDescriptor size = %lu", kSizeOfReportDescriptor);
+    return OSData::withBytes(u2fhid_report_descriptor, kSizeOfReportDescriptor);
 }

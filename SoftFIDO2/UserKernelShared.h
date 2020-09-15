@@ -9,8 +9,15 @@
 #ifndef UserKernelShared_h
 #define UserKernelShared_h
 
-#define FIDO_USAGE_PAGE         0xf1d0  // FIDO alliance HID usage page
-#define FIDO_USAGE_FIDOHID      0x01   // FIDO HID usage for top-level collection
+
+#define kSoftFidoDriverClassName "com_gotrustid_SoftFIDO2_SoftFido2Driver"
+// User client method dispatch selectors.
+enum {
+    kSoftFidoUserClientSendFrame,
+    kSoftFidoUserClientNotifyFrame,
+    kNumberOfMethods // Must be last
+};
+
 
 // Eddie 參考 HID_ReportDesc_fido
 // https://github.com/LedgerHQ/nanos-secure-sdk/blob/master/lib_stusb_samples/Class/HID%2BFIDO/usbd_hid_impl.c
@@ -36,7 +43,7 @@
 //};
 
 // FIDO2 (Ming)
-unsigned char const kFido2HidReportDescriptor[] = {
+const uint8_t kFido2HidReportDescriptor[] = {
     0x06, 0xD0, 0xF1, // Usage Page (Reserved 0xF1D0)
     0x09, 0x01,       // Usage (0x01)
     0xA1, 0x01,       // Collection (Application)
@@ -58,8 +65,7 @@ unsigned char const kFido2HidReportDescriptor[] = {
 };
 
 // 原本 SoftU2F 的
-/*
-unsigned char const u2fhid_report_descriptor[] = {
+uint8_t const u2fhid_report_descriptor[] = {
     0x06, 0xD0, 0xF1, // Usage Page (Reserved 0xF1D0)
     0x09, 0x01,       // Usage (0x01)
     0xA1, 0x01,       // Collection (Application)
@@ -79,6 +85,5 @@ unsigned char const u2fhid_report_descriptor[] = {
                       //   Position,Non-volatile)
     0xC0,             // End Collection
 };
-*/
 
 #endif /* UserKernelShared_h */

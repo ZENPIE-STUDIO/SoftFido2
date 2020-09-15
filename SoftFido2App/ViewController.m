@@ -8,13 +8,16 @@
 
 #import "ViewController.h"
 #import <SystemExtensions/SystemExtensions.h>
-#import "SoftFido2Lib.h"
+//#import "SoftFido2Lib.h"
+#import "FidoHID.h"
 
 @interface ViewController() <OSSystemExtensionRequestDelegate>
 @property (nonatomic) NSTextView* textView;
 @property (nonatomic) NSButton* btnActivate;
 @property (nonatomic) NSButton* btnDeactivate;
 @property (nonatomic) NSButton* btnTry;
+
+@property (nonatomic) FidoHID* fidoHid;
 @end
 
 @implementation ViewController
@@ -80,7 +83,11 @@
 
 - (void) trySomething {
     NSLog(@"trySomething");
-    [SoftFido2Lib test];
+    if (_fidoHid == nil) {
+        _fidoHid = [FidoHID new];
+    }
+    
+    [_fidoHid run];
 }
 #pragma mark - OSSystemExtensionRequestDelegate
 // 決定要替換還是要無視，開發中 一律 replace
@@ -106,12 +113,14 @@
     switch (result) {
         case OSSystemExtensionRequestCompleted:
             NSLog(@"didFinishWithResult : successfully completed");
-            //[self afterActivateSuccess];
+            _textView.string = @"request - successfully completed";
             break;
         case OSSystemExtensionRequestWillCompleteAfterReboot:
+            _textView.string = @"request - successfully completed after a reboot";
             NSLog(@"didFinishWithResult : successfully completed after a reboot");
             break;
         default:
+            _textView.string = @"request - Failed";
             NSLog(@"didFinishWithResult : %ld", result);
             break;
     }
