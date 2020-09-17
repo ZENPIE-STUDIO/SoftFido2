@@ -21,11 +21,11 @@ public:
     virtual void free() override;
     
     // IOHIDDevice Virtual Method
-//    virtual kern_return_t handleReport(uint64_t timestamp,
-//                                       IOMemoryDescriptor * report,
-//                                       uint32_t reportLength,
-//                                       IOHIDReportType reportType,
-//                                       IOOptionBits options) override;
+    virtual kern_return_t handleReport(uint64_t timestamp,
+                                       IOMemoryDescriptor * report,
+                                       uint32_t reportLength,
+                                       IOHIDReportType reportType,
+                                       IOOptionBits options) override;
 //
 //    virtual kern_return_t getReport(IOMemoryDescriptor * report,
 //                                    IOHIDReportType reportType,

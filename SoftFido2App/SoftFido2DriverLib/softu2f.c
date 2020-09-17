@@ -123,15 +123,36 @@ void softu2f_run(softu2f_ctx *ctx) {
   CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop_source, kCFRunLoopDefaultMode);
   CFRunLoopAddTimer(CFRunLoopGetCurrent(), run_loop_timer, kCFRunLoopDefaultMode);
 
+    // (DriverKit) Test Send Data
+    softu2f_hid_message msg;
+    uint8_t dataArray[30] = {1,2,3,4,5,6,7,8,9,0,
+        1,2,3,4,5,6,7,8,9,0,
+        1,2,3,4,5,6,7,8,9,0
+    };
+    CFDataRef data = CFDataCreate(NULL, dataArray, 30);
+    msg.cmd = (TYPE_INIT | 0x10);  // FIDO2 (MI_Windows 也用這個)
+    msg.bcnt = 30;
+    msg.cid = 111;
+    msg.data = data;
+    softu2f_hid_msg_send(ctx, &msg);
+    
+    
+    // (DriverKit) Try Async Struct
+    size_t frameSize = sizeof(U2FHID_FRAME);
+    U2FHID_FRAME *outputStruct = (U2FHID_FRAME*) calloc(1, frameSize);
+    ret = IOConnectCallAsyncStructMethod(ctx->con,
+                                         kSoftFidoUserClientNotifyFrame,
+                                         mnotification_port,
+                                         NULL, 0,                       // reference
+                                         NULL, 0,                       // inputStruct
+                                         outputStruct, &frameSize);   // outputStruct
+/*
   // Params to pass to the kernel.
   async_ref[kIOAsyncCalloutFuncIndex] = (uint64_t)softu2f_async_callback;
   async_ref[kIOAsyncCalloutRefconIndex] = (uint64_t)ctx;
-
-  // (DriverKit)
-//    OSAction::Create
-//    IOConnectCallAsyncStructMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, <#uint64_t *reference#>, <#uint32_t referenceCnt#>, <#const void *inputStruct#>, <#size_t inputStructCnt#>, <#void *outputStruct#>, <#size_t *outputStructCnt#>)
   // (KEXT) Tell the kernel how to notify us.
   ret = IOConnectCallAsyncScalarMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, async_ref, kIOAsyncCalloutCount, NULL, 0, NULL, 0);
+ */
   if (ret != kIOReturnSuccess) {
     softu2f_log(ctx, "Error registering for setFrame notifications.\n");
     return;

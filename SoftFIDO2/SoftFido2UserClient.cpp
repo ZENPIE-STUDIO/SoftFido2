@@ -9,15 +9,18 @@
 #include <os/log.h>
 
 #include <DriverKit/IOLib.h>
+#include <DriverKit/OSData.h>
 #include <DriverKit/IODispatchQueue.h>
 #include <DriverKit/IOMemoryMap.h>
 #include "UserKernelShared.h"
 #include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 #include "SoftFido2UserClient.h"
 #include "SoftFido2Device.h"
+#include "BufMemoryUtils.hpp"
 
 #define LOG_PREFIX "[SoftFido2][UserClient] "
 
+void debugArguments(IOUserClientMethodArguments* arguments);
 
 struct SoftFido2UserClient_IVars {
     com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
@@ -93,29 +96,6 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
     }
     return Stop(provider, SUPERDISPATCH);
 }
-
-// (舊KEXT) IOMemoryDescriptor 的用法不太一樣
-//void SoftFido2UserClient::frameReceivedGated(IOMemoryDescriptor *report) {
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceivedGated Report = %p", report);
-//    IOMemoryMap *reportMap = nullptr;
-//    if (isInactive() || !_notifyRef)
-//        return;
-//
-//    if (report->getLength() != sizeof(U2FHID_FRAME) || report->prepare() != kIOReturnSuccess)
-//        return;
-//
-//    // Map report into kernel space.
-//    reportMap = report->map();
-//
-//    if (reportMap != nullptr) {
-//        // Notify userland that we got a report.
-//        io_user_reference_t *args = (io_user_reference_t *)reportMap->getAddress();
-//        sendAsyncResult64(*_notifyRef, kIOReturnSuccess, args, sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t));
-//        reportMap->release();
-//    }
-//
-//    report->complete();
-//}
 
 /*
  DriverKit 沒有
@@ -204,104 +184,49 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
  */
 const IOUserClientMethodDispatch sMethods[kNumberOfMethods] = {
     {(IOUserClientMethodFunction)&SoftFido2UserClient::sSendFrame, 0, 0, sizeof(U2FHID_FRAME), 0, 0},
-    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, 0},
+    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, sizeof(U2FHID_FRAME)},
 };
-/*
- ExternalMethod arguments->version = 2
- ExternalMethod arguments->scalarInputCount = 0
- ExternalMethod arguments->scalarOutputCount = 0
- ExternalMethod arguments->structureOutputMaximumSize = 0
- ExternalMethod arguments->completion
- ExternalMethod arguments->scalarInput
- ExternalMethod arguments->scalarOutput
- ExternalMethod arguments->structureInput = null
- ExternalMethod arguments->structureInputDescriptor = null
- ExternalMethod arguments->structureOutput = null
- ExternalMethod arguments->structureOutputDescriptor = null
- */
+
+// 心得:
+//      - ExternalMethod的 arguments->structureInput 有值，但透過 super::ExternalMethod 傳入 static sSendFrame就變null
+//      - 而 reference 有值，只是不知道是什麼? 是宣告的 U2FHID_FRAME ?
 kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                   IOUserClientMethodArguments* arguments,
                                                   const IOUserClientMethodDispatch* dispatch,
                                                   OSObject* target,
                                                   void* reference) {
-    if (target != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod target->GetClassName() = %s", target->GetClassName());
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod target is null.");
-    }
-    if (dispatch != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod dispatch not null.");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod dispatch is null.");
-    }
-    if (reference != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference not null.");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference is null.");
-    }
-    if (arguments != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod check arguments");
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->version = %llu", arguments->version);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInputCount = %u", arguments->scalarInputCount);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutputCount = %u", arguments->scalarOutputCount);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputMaximumSize = %llu", arguments->structureOutputMaximumSize);
-        if (arguments->completion != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->completion");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->completion = null");
-        }
-        if (arguments->scalarInput != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInput");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInput = null");
-        }
-        if (arguments->scalarOutput != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutput");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutput = null");
-        }
-        if (arguments->structureInput != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInput");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInput = null");
-        }
-        if (arguments->structureInputDescriptor != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInputDescriptor");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInputDescriptor = null");
-        }
-        
-        if (arguments->structureOutput != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutput");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutput = null");
-        }
-        
-        if (arguments->structureOutputDescriptor != nullptr) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputDescriptor");
-        } else {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputDescriptor = null");
-        }
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments is null!");
-    }
-    
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "------------------<ExternalMethod>------------------");
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod selector = %llu", selector);
+    debugArguments(arguments);
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
-        case kSoftFidoUserClientSendFrame:
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod kSoftFidoUserClientSendFrame");
+        case kSoftFidoUserClientSendFrame: {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod SendFrame");
             // sSendFrame, 0, sizeof(U2FHID_FRAME), 0, 0
+            dispatch = &sMethods[kSoftFidoUserClientSendFrame];
+            target = this;
+            //【嘗試方法】此處直接取用 arguments->structureInput，是可以取到內容。
+            //  直接呼叫 sendFrame好像更方便
+//                OSData* input = arguments->structureInput;
+//                //frameLength = input->getLength();
+//                os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame input length = %lu", input->getLength());
+//                U2FHID_FRAME* frame = (U2FHID_FRAME*) input->getBytesNoCopy();
+//                sendFrame(frame, input->getLength());   // 直接呼叫
+//                return kIOReturnSuccess;
+                        
+            //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。
+            //  應該是在宣告時有指定 checkStructureInputSize
             return super::ExternalMethod(selector, arguments, dispatch, target, reference);
+        }
         case kSoftFidoUserClientNotifyFrame:
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod kSoftFidoUserClientNotifyFrame");
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod NotifyFrame");
             dispatch = &sMethods[kSoftFidoUserClientNotifyFrame];
             target = this;
             ivars->notifyFrameAction = arguments->completion;
             ivars->notifyFrameAction->retain();
             return kIOReturnSuccess;
-            //return super::ExternalMethod(selector, arguments, dispatch, target, reference);   // 用這個會失敗!?
+            //return super::ExternalMethod(selector, arguments, dispatch, target, reference);   // 用這個會失敗!? 可能是 定義的 與 傳入的不符合
         default:
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod No support selector : %llu", selector);
             break;
@@ -310,16 +235,69 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     return kIOReturnBadArgument;
 }
 
-//static kern_return_t sSendFrame(SoftFido2UserClient *target, IOUserClientMethodArguments *arguments);
+//SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments
 kern_return_t IMPL(SoftFido2UserClient, sSendFrame) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
-    return target->sendFrame(nullptr, 0);
+    size_t frameLength = 0;
+    U2FHID_FRAME* frame = nullptr;
+//    // ---- Debug Start ----
+//    if (arguments->structureInput != nullptr) {
+//        OSData* input = arguments->structureInput;
+//        frameLength = input->getLength();
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame input length = %lu", frameLength);
+//        frame = (U2FHID_FRAME*) input->getBytesNoCopy();
+//        uint8_t* byteArray = (uint8_t*) input->getBytesNoCopy();
+//        if (byteArray != nullptr) {
+//            for (int i = 0; i < input->getLength(); i++) {
+//                os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame input(%d) = %d", i, byteArray[i]);
+//            }
+//        } else {
+//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame input getBytesNoCopy is null");
+//        }
+//    } else {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame arguments->structureInput is null");
+//    }
+    if (reference != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame reference ✅");
+        frame = (U2FHID_FRAME*) reference;
+        frameLength = sizeof(U2FHID_FRAME);
+        //OSObject* object = (OSObject*) reference;
+        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "  (OSObject) reference = %s", object->GetClassName());
+        //OSData* input = (OSData*) reference;
+        //frameLength = input->getLength();
+        //frame = (U2FHID_FRAME*) input->getBytesNoCopy();
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame reference is null");
+    }
+    // ---- Debug Stop ----
+    if (frameLength == HID_RPT_SIZE) {
+        return target->sendFrame(frame, frameLength);
+    }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame kIOReturnBadArgument");
+    return kIOReturnBadArgument;
 }
 
 //virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
 kern_return_t IMPL(SoftFido2UserClient, sendFrame) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame refCount = %lu", frameSize);
-    return kIOReturnSuccess;
+    // 把資料做成 report
+    IOMemoryDescriptor* report = nullptr;
+    auto ret = BufMemoryUtils::createWithBytes(frame, frameSize, &report);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > create report failed");
+        return ret;
+    }
+    uint64_t reportLength;
+    ret = report->GetLength(&reportLength);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > get report length failed");
+        return ret;
+    }
+    ret = ivars->fido2Device->handleReport(mach_absolute_time(), report, static_cast<uint32_t>(reportLength), kIOHIDReportTypeInput, 0);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > fido2Device->handleReport failed");
+    }
+    return ret;
 }
 
 kern_return_t IMPL(SoftFido2UserClient, sNotifyFrame) {
@@ -356,4 +334,59 @@ kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
         ret = super::CopyClientMemoryForType(type, options, memory);
     }
     return ret;
+}
+
+
+#pragma mark - Debug
+
+void debugArguments(IOUserClientMethodArguments* arguments) {
+    // ExternalMethod target is null.
+    // ExternalMethod dispatch is null.
+    // ExternalMethod reference is null.
+    if (arguments != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod check arguments");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->version = %llu", arguments->version);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInputCount = %u", arguments->scalarInputCount);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutputCount = %u", arguments->scalarOutputCount);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputMaximumSize = %llu", arguments->structureOutputMaximumSize);
+        if (arguments->completion != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->completion ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->completion = null");
+        }
+        if (arguments->scalarInput != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInput ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarInput = null");
+        }
+        if (arguments->scalarOutput != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutput ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->scalarOutput = null");
+        }
+        if (arguments->structureInput != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInput ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInput = null");
+        }
+        if (arguments->structureInputDescriptor != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInputDescriptor ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureInputDescriptor = null");
+        }
+        
+        if (arguments->structureOutput != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutput ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutput = null");
+        }
+        
+        if (arguments->structureOutputDescriptor != nullptr) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputDescriptor ✅");
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->structureOutputDescriptor = null");
+        }
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments is null!");
+    }
 }

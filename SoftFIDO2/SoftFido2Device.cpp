@@ -40,16 +40,16 @@ void SoftFido2Device::free() {
 }
 
 #pragma mark - IOHIDDevice
-//kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
-//                                            IOMemoryDescriptor * report,
-//                                            uint32_t reportLength,
-//                                            IOHIDReportType reportType,
-//                                            IOOptionBits options) {
-//    kern_return_t ret = kIOReturnSuccess;
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleReport");
-//    return ret;
-//}
-//
+kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
+                                            IOMemoryDescriptor * report,
+                                            uint32_t reportLength,
+                                            IOHIDReportType reportType,
+                                            IOOptionBits options) {
+    kern_return_t ret = kIOReturnSuccess;
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleReport");
+    return ret;
+}
+
 //kern_return_t SoftFido2Device::getReport(IOMemoryDescriptor * report,
 //                                        IOHIDReportType reportType,
 //                                        IOOptionBits options,
@@ -79,6 +79,11 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
+        // <<< Map >>>
+        uint64_t address = 0;
+        uint64_t len = 0;
+        report->Map(0, 0, 0, 0, &address, &len);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map > address = %llu,  len = %llu", address, len);
         ret = userClient->frameReceived(report, action);
     }
     // Sleep for a bit to make the HID conformance tests happy.

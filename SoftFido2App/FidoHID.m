@@ -8,6 +8,7 @@
 
 #import "FidoHID.h"
 #import "softu2f.h"
+#import "SoftU2FContants.h"
 
 static FidoHID* gU2fHid = nil;
 

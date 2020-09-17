@@ -49,6 +49,7 @@
 		271C0C4E2508B3F200F9DE4E /* SoftFIDO2.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = SoftFIDO2.entitlements; sourceTree = "<group>"; };
 		277C580625076F1000D156BF /* DriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DriverKit.framework; path = System/DriverKit/System/Library/Frameworks/DriverKit.framework; sourceTree = SDKROOT; };
 		277C580825076F1A00D156BF /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = SDKROOT; };
+		27808C73251304D300400323 /* BufMemoryUtils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufMemoryUtils.hpp; sourceTree = "<group>"; };
 		2780EBC324FF73CF009332AC /* HIDDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HIDDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/HIDDriverKit.framework; sourceTree = SDKROOT; };
 		2780EBC524FF76CC009332AC /* SoftFido2Device.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SoftFido2Device.iig; sourceTree = "<group>"; };
 		2780EBC724FF76EA009332AC /* SoftFido2Device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SoftFido2Device.cpp; sourceTree = "<group>"; };
@@ -129,6 +130,7 @@
 		27038DB124FE4B8D002F7F77 /* SoftFIDO2 */ = {
 			isa = PBXGroup;
 			children = (
+				27808C73251304D300400323 /* BufMemoryUtils.hpp */,
 				27AA6844250F402D00FDB44A /* u2f_hid.h */,
 				2780EBCD24FF7FED009332AC /* UserKernelShared.h */,
 				27038DB224FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.cpp */,
