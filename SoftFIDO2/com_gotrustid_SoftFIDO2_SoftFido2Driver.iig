@@ -30,7 +30,6 @@ public:
 
     virtual kern_return_t NewUserClient(uint32_t type,
                                         IOUserClient** userClient) override;
-    //
 };
 
 #endif /* SoftFIDO2_h */

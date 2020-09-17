@@ -47,7 +47,7 @@ static FidoHID* gU2fHid = nil;
     if (_ctx == NULL) {
         return;
     }
-    NSLog(@"type = %d", type);
+    NSLog(@"type = %ld", (long)type);
     _handlers[@(type)] = handler;
     // register handler
     softu2f_hid_msg_handler_register(_ctx, type, my_message_handler);

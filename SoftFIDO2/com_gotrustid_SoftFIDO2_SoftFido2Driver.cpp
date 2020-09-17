@@ -46,10 +46,16 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start");
     kern_return_t ret = kIOReturnSuccess;
     ret = Start(provider, SUPERDISPATCH);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start Failed!");
+        Stop(provider, SUPERDISPATCH);
+        return ret;
+    }
     IODispatchQueue* workQueue = nullptr;
     ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
     if (ret != kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
+        Stop(provider, SUPERDISPATCH);
         return ret;
     }
     ivars->workQueue = workQueue;

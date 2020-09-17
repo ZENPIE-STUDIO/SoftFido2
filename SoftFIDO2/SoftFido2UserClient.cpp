@@ -10,6 +10,7 @@
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/IODispatchQueue.h>
+#include <DriverKit/IOMemoryMap.h>
 #include "UserKernelShared.h"
 #include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 #include "SoftFido2UserClient.h"
@@ -21,19 +22,9 @@
 struct SoftFido2UserClient_IVars {
     com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
     SoftFido2Device* fido2Device;
-    IODispatchQueue* commandQueue = nullptr;
+    //IODispatchQueue* commandQueue = nullptr;
     //
     OSAction* notifyFrameAction = nullptr;
-    // From SoftU2F (原本宣告在 SoftU2FUserClient.hpp 的 private
-    //    IOCommandGate *_commandGate = nullptr;  => 用 IODispatchQueue 取代
-    //
-    //    typedef struct {
-    //        uint32_t                    selector;
-    //        IOExternalMethodArguments * arguments;
-    //        IOExternalMethodDispatch *  dispatch;
-    //        OSObject *                  target;
-    //        void *                      reference;
-    //    } ExternalMethodGatedArguments;
 };
 
 
@@ -52,6 +43,7 @@ bool SoftFido2UserClient::init() {
 void SoftFido2UserClient::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
 
+    OSSafeReleaseNULL(ivars->notifyFrameAction);
     OSSafeReleaseNULL(ivars->fido2Device);
     IOSafeDeleteNULL(ivars, SoftFido2UserClient_IVars, 1);
     super::free();
@@ -96,8 +88,13 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
 
 kern_return_t IMPL(SoftFido2UserClient, Stop) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Stop");
+    if (ivars->fido2Device != nullptr) {
+        ivars->fido2Device->release();
+    }
     return Stop(provider, SUPERDISPATCH);
 }
+
+// (舊KEXT) IOMemoryDescriptor 的用法不太一樣
 //void SoftFido2UserClient::frameReceivedGated(IOMemoryDescriptor *report) {
 //    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceivedGated Report = %p", report);
 //    IOMemoryMap *reportMap = nullptr;
@@ -137,22 +134,12 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
-    // <<< CreateMapping >>>
-    uint64_t options = 0;
-//    IOMemoryMap* map = nullptr;
-//    ret = report->CreateMapping(kIOMemoryMapReadOnly, 0, 0, 0, 0, &map);
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping Failed!");
-//        //return ret;
-//    }
-    
     // <<< PrepareForDMA >>>
     uint64_t flags = 0;
     uint64_t dmaLength = 0;
     uint32_t dmaSegmentCount = 0;
-    //IOAddressSegment segments;
     IOAddressSegment segments[32];
-    ret = report->PrepareForDMA(options, this, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
+    ret = report->PrepareForDMA(0, this, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
     if (ret != kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
         //return ret;
@@ -170,27 +157,55 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     uint64_t address = 0;
     uint64_t len = 0;
     //ret =
-    report->Map(options, 0, 0, 0, &address, &len);
+    report->Map(0, 0, 0, 0, &address, &len);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map > address = %llu,  len = %llu", address, len);
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map Failed!");
-//        //return ret;
-//    } else {
-//    }
-
-    // ------
-    // 1. Create 要跟外界溝通的記憶體空間 (考慮由外部提供，就不用一直 allocate )
-//    IOBufferMemoryDescriptor* bufferMemoryDesc = nullptr;
-//    ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, length, 0, &bufferMemoryDesc);
-//    memcpy(reinterpret_cast<void*>(address), bytes, length);
+    //    if (ret != kIOReturnSuccess) {
+    //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map Failed!");
+    //        //return ret;
+    //    } else {
+    //
+    // <<< CreateMapping >>>
+    uint64_t options[5] = {kIOMemoryMapReadOnly, kIOMemoryMapCacheModeDefault, kIOMemoryMapCacheModeInhibit, kIOMemoryMapCacheModeCopyback, kIOMemoryMapCacheModeWriteThrough};
+    for (int i = 0; i < 5; i++) {
+        IOMemoryMap* map = nullptr;
+        ret = report->CreateMapping(options[i], 0, 0, 0, 0, &map);
+        if (ret != kIOReturnSuccess) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping %d Failed!", i);
+            //return ret;
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping %d Success", i);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "   map->GetAddress = %llu", map->GetAddress());
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "   map->GetLength = %llu", map->GetLength());
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "   map->GetOffset = %llu", map->GetOffset());
+            
+        }
+    }
     
     // ------
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "Before AsyncCompletion");
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "Before AsyncCompletion");
+    //ivars->notifyFrameAction->ivars->address
+    if (ivars->notifyFrameAction != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameAction ");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameAction is null");
+    }
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, (uint64_t*) address, (uint32_t) len);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion");
     return kIOReturnSuccess;
 }
 
+/* IOUserClientMethodDispatch
+ IOUserClientMethodFunction function;
+ uint32_t                   checkCompletionExists;
+ uint32_t                   checkScalarInputCount;
+ uint32_t                   checkStructureInputSize;
+ uint32_t                   checkScalarOutputCount;
+ uint32_t                   checkStructureOutputSize;
+ */
+const IOUserClientMethodDispatch sMethods[kNumberOfMethods] = {
+    {(IOUserClientMethodFunction)&SoftFido2UserClient::sSendFrame, 0, 0, sizeof(U2FHID_FRAME), 0, 0},
+    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, 0},
+};
 /*
  ExternalMethod arguments->version = 2
  ExternalMethod arguments->scalarInputCount = 0
@@ -209,6 +224,21 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                   const IOUserClientMethodDispatch* dispatch,
                                                   OSObject* target,
                                                   void* reference) {
+    if (target != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod target->GetClassName() = %s", target->GetClassName());
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod target is null.");
+    }
+    if (dispatch != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod dispatch not null.");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod dispatch is null.");
+    }
+    if (reference != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference not null.");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference is null.");
+    }
     if (arguments != nullptr) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod check arguments");
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments->version = %llu", arguments->version);
@@ -266,20 +296,64 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             return super::ExternalMethod(selector, arguments, dispatch, target, reference);
         case kSoftFidoUserClientNotifyFrame:
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod kSoftFidoUserClientNotifyFrame");
+            dispatch = &sMethods[kSoftFidoUserClientNotifyFrame];
+            target = this;
             ivars->notifyFrameAction = arguments->completion;
+            ivars->notifyFrameAction->retain();
             return kIOReturnSuccess;
-            //return super::ExternalMethod(selector, arguments, dispatch, target, reference);
+            //return super::ExternalMethod(selector, arguments, dispatch, target, reference);   // 用這個會失敗!?
         default:
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod No support selector : %llu", selector);
             break;
     }
     
-//    ivars->commandQueue->DispatchAsync(^{ 
-//    });
     return kIOReturnBadArgument;
 }
 
-kern_return_t IMPL(SoftFido2UserClient, notifyFrame) {
+//static kern_return_t sSendFrame(SoftFido2UserClient *target, IOUserClientMethodArguments *arguments);
+kern_return_t IMPL(SoftFido2UserClient, sSendFrame) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
+    return target->sendFrame(nullptr, 0);
+}
+
+//virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
+kern_return_t IMPL(SoftFido2UserClient, sendFrame) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame refCount = %lu", frameSize);
     return kIOReturnSuccess;
 }
 
+kern_return_t IMPL(SoftFido2UserClient, sNotifyFrame) {
+//kern_return_t SoftFido2UserClient::sNotifyFrame(SoftFido2UserClient *target, IOUserClientMethodArguments *arguments) {
+    //
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sNotifyFrame");
+    return target->notifyFrame(999);
+}
+
+kern_return_t IMPL(SoftFido2UserClient, notifyFrame) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrame refCount = %u", refCount);
+    return kIOReturnSuccess;
+}
+
+/*
+ CopyClientMemoryForType(\
+     uint64_t type,\
+     uint64_t * options,\
+     IOMemoryDescriptor ** memory,\
+     OSDispatchMethod supermethod = NULL);\
+ */
+kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
+    kern_return_t ret;
+    if (type == 0) {
+        IOBufferMemoryDescriptor* buffer = nullptr;
+        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
+        if (ret != kIOReturnSuccess) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
+        } else {
+            *memory = buffer; // returned with refcount 1
+        }
+    } else {
+        ret = super::CopyClientMemoryForType(type, options, memory);
+    }
+    return ret;
+}

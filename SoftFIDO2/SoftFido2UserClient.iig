@@ -28,22 +28,23 @@ public:
                                          const IOUserClientMethodDispatch* dispatch,
                                          OSObject* target,
                                          void* reference) override;
+    
+    
+    virtual kern_return_t CopyClientMemoryForType(uint64_t type,
+                                                  uint64_t * options,
+                                                  IOMemoryDescriptor ** memory) override;
 
     // SoftU2F 有 2 個 Public Function，在這裡照 iig 的格式做點小修改
     //virtual IOReturn clientClose(void) override;
     virtual kern_return_t frameReceived(IOMemoryDescriptor *report, OSAction* action);
     
-    
-    //virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
-    virtual kern_return_t notifyFrame(uint32_t refCount);
 protected:
-/*
-    // User client methods
-    static IOReturn sSendFrame(SoftU2FUserClient *target, void *reference, IOExternalMethodArguments *arguments);
-    virtual IOReturn sendFrame(U2FHID_FRAME *frame, size_t frameSize);
-
-    static IOReturn sNotifyFrame(SoftU2FUserClient *target, void *reference, IOExternalMethodArguments *arguments);
-    virtual IOReturn notifyFrame(io_user_reference_t *ref, uint32_t refCount);*/
+    //kern_return_t (*IOUserClientMethodFunction)(OSObject * target, void * reference, IOUserClientMethodArguments * arguments);
+    static kern_return_t sSendFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
+    virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
+    
+    static kern_return_t sNotifyFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
+    virtual kern_return_t notifyFrame(uint32_t refCount);
 };
 
 #endif /* SoftFido2UserClient_h */
