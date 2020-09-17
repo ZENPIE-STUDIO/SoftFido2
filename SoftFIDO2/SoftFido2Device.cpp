@@ -73,6 +73,9 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         case kIOHIDReportTypeCount: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Count)"); break;
     }
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
+    
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport Report GetClassName = %s", report->GetClassName());
+    
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
@@ -80,6 +83,11 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     }
     // Sleep for a bit to make the HID conformance tests happy.
     IOSleep(1); // 1ms
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
+    CompleteReport(action, kIOReturnSuccess, 64); // 沒有這個，LOG會有
+    // SoftFido2Device:0x1000008a6 Action aborted 0 1
+    // SoftFido2Device:0x1000008a6 ProcessReport:0xe00002eb 1 0
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - return %d", ret);
     return ret;
 }
 
@@ -155,7 +163,7 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
 }
 
 OSData* SoftFido2Device::newReportDescriptor(void) {
-    const size_t kSizeOfReportDescriptor = sizeof(u2fhid_report_descriptor);
+    const size_t kSizeOfReportDescriptor = sizeof(kFido2HidReportDescriptor);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "newReportDescriptor size = %lu", kSizeOfReportDescriptor);
-    return OSData::withBytes(u2fhid_report_descriptor, kSizeOfReportDescriptor);
+    return OSData::withBytes(kFido2HidReportDescriptor, kSizeOfReportDescriptor);
 }
