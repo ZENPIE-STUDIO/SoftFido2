@@ -87,11 +87,11 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         ret = userClient->frameReceived(report, action);
     }
     // Sleep for a bit to make the HID conformance tests happy.
-    IOSleep(1); // 1ms
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
     CompleteReport(action, kIOReturnSuccess, 64); // 沒有這個，LOG會有
     // SoftFido2Device:0x1000008a6 Action aborted 0 1
     // SoftFido2Device:0x1000008a6 ProcessReport:0xe00002eb 1 0
+    IOSleep(1); // 1ms
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - return %d", ret);
     return ret;
 }

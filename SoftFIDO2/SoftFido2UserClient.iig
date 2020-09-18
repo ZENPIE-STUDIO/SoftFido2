@@ -40,11 +40,11 @@ public:
     
 protected:
     //kern_return_t (*IOUserClientMethodFunction)(OSObject * target, void * reference, IOUserClientMethodArguments * arguments);
-    static kern_return_t sSendFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
+    //static kern_return_t sSendFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
     virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
     
-    static kern_return_t sNotifyFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
-    virtual kern_return_t notifyFrame(uint32_t refCount);
+    //static kern_return_t sNotifyFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
+    //virtual kern_return_t notifyFrame(uint32_t refCount);
 };
 
 #endif /* SoftFido2UserClient_h */

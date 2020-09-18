@@ -123,36 +123,60 @@ void softu2f_run(softu2f_ctx *ctx) {
   CFRunLoopAddSource(CFRunLoopGetCurrent(), run_loop_source, kCFRunLoopDefaultMode);
   CFRunLoopAddTimer(CFRunLoopGetCurrent(), run_loop_timer, kCFRunLoopDefaultMode);
 
-    // (DriverKit) Test Send Data
-    softu2f_hid_message msg;
-    uint8_t dataArray[30] = {1,2,3,4,5,6,7,8,9,0,
-        1,2,3,4,5,6,7,8,9,0,
-        1,2,3,4,5,6,7,8,9,0
-    };
-    CFDataRef data = CFDataCreate(NULL, dataArray, 30);
-    msg.cmd = (TYPE_INIT | 0x10);  // FIDO2 (MI_Windows 也用這個)
-    msg.bcnt = 30;
-    msg.cid = 111;
-    msg.data = data;
-    softu2f_hid_msg_send(ctx, &msg);
-    
-    
-    // (DriverKit) Try Async Struct
-    size_t frameSize = sizeof(U2FHID_FRAME);
-    U2FHID_FRAME *outputStruct = (U2FHID_FRAME*) calloc(1, frameSize);
-    ret = IOConnectCallAsyncStructMethod(ctx->con,
-                                         kSoftFidoUserClientNotifyFrame,
-                                         mnotification_port,
-                                         NULL, 0,                       // reference
-                                         NULL, 0,                       // inputStruct
-                                         outputStruct, &frameSize);   // outputStruct
-/*
   // Params to pass to the kernel.
   async_ref[kIOAsyncCalloutFuncIndex] = (uint64_t)softu2f_async_callback;
   async_ref[kIOAsyncCalloutRefconIndex] = (uint64_t)ctx;
+
+    // (DriverKit) Test Send Data
+//    softu2f_hid_message msg;
+//    uint8_t dataArray[30] = {1,2,3,4,5,6,7,8,9,0,
+//        1,2,3,4,5,6,7,8,9,0,
+//        1,2,3,4,5,6,7,8,9,0
+//    };
+//    CFDataRef data = CFDataCreate(NULL, dataArray, 30);
+//    msg.cmd = (TYPE_INIT | 0x10);  // FIDO2 (MI_Windows 也用這個)
+//    msg.bcnt = 30;
+//    msg.cid = 111;
+//    msg.data = data;
+//    softu2f_hid_msg_send(ctx, &msg);
+    
+    // (DriverKit) Try sync Struct
+    // TODO: 建立一個大於 4096 的 Buffer
+    size_t frameSize = sizeof(U2FHID_FRAME);
+    size_t allocCount = 65;  // 64(4096), 65(4160)
+    size_t totalSize = frameSize * allocCount;
+    U2FHID_FRAME *outputStruct = (U2FHID_FRAME*) calloc(allocCount, frameSize);
+    
+    /*
+    ret = IOConnectCallStructMethod(ctx->con, kSoftFidoUserClientNotifyFrame + 1,
+                                    NULL, 0,
+                                    outputStruct, &frameSize);
+    if (ret != kIOReturnSuccess) {
+        softu2f_log(ctx, "[EddieTest] IOConnectCallStructMethod Failed\n");
+        return;
+    }
+    softu2f_log(ctx, "[EddieTest] IOConnectCallStructMethod outputStruct->type = %x\n", outputStruct->type);
+    softu2f_log(ctx, "[EddieTest] IOConnectCallStructMethod outputStruct->cid = %d\n", outputStruct->cid);*/
+    // (DriverKit) Try Async Struct
+    softu2f_log(ctx, "[EddieTest] softu2f_async_callback = %llu\n", async_ref[kIOAsyncCalloutFuncIndex]);
+    softu2f_log(ctx, "[EddieTest] ctx = %llu\n", async_ref[kIOAsyncCalloutRefconIndex]);
+
+    softu2f_log(ctx, "[EddieTest] kIOAsyncCalloutCount = %lu\n", kIOAsyncCalloutCount);
+    //softu2f_log(ctx, "[EddieTest] IOConnectCallStructMethod sizeof(io_async_ref64_t) = %lu\n", sizeof(io_async_ref64_t));
+    // reference : 用來傳送 async_ref，雖然 Driver那邊在ExternalMethod顯示都是null
+    //   (猜測) DriverKit會把 reference的值，變為呼叫 AsyncCompletion時，OSAction要callback的address
+    //  實驗1: 只用reference傳遞 async_ref, kIOAsyncCalloutCount => 沒用!
+    //  實驗2: 只用inputStruct傳遞 async_ref, kIOAsyncCalloutCount => 可以!
+    //  實驗3: reference 及 inputStruct都放入 async_ref => 可以!
+    ret = IOConnectCallAsyncStructMethod(ctx->con,
+                                         kSoftFidoUserClientNotifyFrame,
+                                         mnotification_port,
+                                         async_ref, kIOAsyncCalloutCount, // reference
+                                         NULL, 0, // inputStruct
+                                         outputStruct, &totalSize);   // outputStruct
+     
   // (KEXT) Tell the kernel how to notify us.
-  ret = IOConnectCallAsyncScalarMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, async_ref, kIOAsyncCalloutCount, NULL, 0, NULL, 0);
- */
+//  ret = IOConnectCallAsyncScalarMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, async_ref, kIOAsyncCalloutCount, NULL, 0, NULL, 0);
   if (ret != kIOReturnSuccess) {
     softu2f_log(ctx, "Error registering for setFrame notifications.\n");
     return;
@@ -719,16 +743,31 @@ void softu2f_debug_frame(softu2f_ctx *ctx, U2FHID_FRAME *frame, bool recv) {
 
 // Called by the kernel when setReport is called on our device.
 void softu2f_async_callback(void *refcon, IOReturn result, io_user_reference_t* args, uint32_t numArgs) {
-  softu2f_ctx *ctx = NULL;
-  U2FHID_FRAME *frame;
+    printf("[EddieDebug] softu2f_async_callback result = %d\n", result);
+    if (refcon != NULL) {
+        printf("[EddieDebug] softu2f_async_callback refcon %llu ✅\n", (uint64_t) refcon);
+    } else {
+        printf("[EddieDebug] softu2f_async_callback refcon is null.\n");
+    }
+    printf("[EddieDebug] softu2f_async_callback numArgs = %d\n", numArgs);
+    if (args != NULL) {
+        printf("[EddieDebug] softu2f_async_callback args ✅\n");
+        for (int i = 0; i < numArgs ; i++) {
+            printf("[EddieDebug] softu2f_async_callback arg(%d) = %llu\n", i, args[i]);
+        }
+    } else {
+        printf("[EddieDebug] softu2f_async_callback args is null.\n");
+    }
+    // ------------------------------------
 
   if (!refcon || result != kIOReturnSuccess) {
     printf("Unexpected call to softu2f_async_callback.\n");
     goto stop;
   }
 
-  ctx = (softu2f_ctx *)refcon;
-
+  softu2f_ctx *ctx = (softu2f_ctx *)refcon;
+/* 暫時跳過
+  U2FHID_FRAME *frame;
   if (numArgs * sizeof(io_user_reference_t) != sizeof(U2FHID_FRAME)) {
     softu2f_log(ctx, "Unexpected argument count in softu2f_async_callback.\n");
     goto stop;
@@ -736,17 +775,12 @@ void softu2f_async_callback(void *refcon, IOReturn result, io_user_reference_t* 
 
   frame = (U2FHID_FRAME *)args;
   softu2f_debug_frame(ctx, frame, true);
-
   pthread_mutex_lock(&ctx->mutex);
-
   // Read frame into a HID message.
   softu2f_hid_frame_read(ctx, frame);
-
   // Handle any completed messages.
   softu2f_hid_handle_messages(ctx);
-
-  pthread_mutex_unlock(&ctx->mutex);
-
+  pthread_mutex_unlock(&ctx->mutex);*/
   return;
 
 stop:
@@ -766,18 +800,15 @@ void softu2f_async_timer_callback(CFRunLoopTimerRef timer, void* info) {
 
   io_service_t service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching(kSoftFidoDriverClassName));
   if (!service) {
-    //softu2f_log(ctx, "[EddieDebug] IOServiceGetMatchingService ❌\n");
+    softu2f_log(ctx, "[EddieDebug] IOServiceGetMatchingService ❌\n");
     goto stop;
   }
   //softu2f_log(ctx, "[EddieDebug] IOServiceGetMatchingService ✅\n");
 
   pthread_mutex_lock(&ctx->mutex);
-
   // Handle any completed messages (checking for timeouts).
   softu2f_hid_handle_messages(ctx);
-
   pthread_mutex_unlock(&ctx->mutex);
-
   return;
 
 stop:
