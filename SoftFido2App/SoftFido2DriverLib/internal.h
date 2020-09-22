@@ -20,8 +20,8 @@ struct softu2f_ctx {
   pthread_mutex_t mutex;
   CFRunLoopRef run_loop;
 
-    size_t outputBufferArrayCount; //
-    U2FHID_FRAME* outputBufferArray; //
+//    size_t outputBufferArrayCount; //
+//    U2FHID_FRAME* outputBufferArray; //
   // Incomming messages.
   softu2f_hid_message *msg_list;
 
@@ -94,7 +94,7 @@ void softu2f_log(softu2f_ctx *ctx, char *fmt, ...);
 void softu2f_debug_frame(softu2f_ctx *ctx, U2FHID_FRAME *frame, bool recv);
 
 // Called by the kernel when setReport is called on our device.
-void softu2f_async_callback(void *refcon, IOReturn result, io_user_reference_t* args, uint32_t numArgs);
+void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint32_t numArgs);
 
 // Called periodically in our runloop.
 void softu2f_async_timer_callback(CFRunLoopTimerRef timer, void* info);

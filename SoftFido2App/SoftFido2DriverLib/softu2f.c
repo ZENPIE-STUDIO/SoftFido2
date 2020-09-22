@@ -142,10 +142,10 @@ void softu2f_run(softu2f_ctx *ctx) {
     
     // (DriverKit) Try sync Struct
     // TODO: 建立一個大於 4096 的 Buffer
-    ctx->outputBufferArrayCount = 65; // 64(4096), 65(4160)
-    size_t frameSize = sizeof(U2FHID_FRAME);
-    size_t totalSize = frameSize * ctx->outputBufferArrayCount;
-    ctx->outputBufferArray = (U2FHID_FRAME*) calloc(ctx->outputBufferArrayCount, frameSize);
+//    ctx->outputBufferArrayCount = 65; // 64(4096), 65(4160)
+//    size_t frameSize = sizeof(U2FHID_FRAME);
+//    size_t totalSize = frameSize * ctx->outputBufferArrayCount;
+//    ctx->outputBufferArray = (U2FHID_FRAME*) calloc(ctx->outputBufferArrayCount, frameSize);
     
     /*
     ret = IOConnectCallStructMethod(ctx->con, kSoftFidoUserClientNotifyFrame + 1,
@@ -173,8 +173,8 @@ void softu2f_run(softu2f_ctx *ctx) {
                                          mnotification_port,
                                          async_ref, kIOAsyncCalloutCount, // reference
                                          NULL, 0, // inputStruct
-                                         //NULL, 0);   // outputStruct
-                                         ctx->outputBufferArray, &totalSize);   // outputStruct
+                                         NULL, 0);   // outputStruct
+//                                         ctx->outputBufferArray, &totalSize);   // outputStruct
      
   // (KEXT) Tell the kernel how to notify us.
 //  ret = IOConnectCallAsyncScalarMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, async_ref, kIOAsyncCalloutCount, NULL, 0, NULL, 0);
@@ -747,13 +747,13 @@ void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint3
 //void softu2f_async_callback(void *refcon, IOReturn result, io_user_reference_t* args, uint32_t numArgs) {
     printf("[EddieDebug] softu2f_async_callback result = %d\n", result);
     if (refcon != NULL) {
-        printf("[EddieDebug] softu2f_async_callback refcon %llu ✅\n", (uint64_t) refcon);
+        printf("[EddieDebug] softu2f_async_callback ✅ refcon %llu\n", (uint64_t) refcon);
     } else {
         printf("[EddieDebug] softu2f_async_callback refcon is null.\n");
     }
     printf("[EddieDebug] softu2f_async_callback numArgs = %d\n", numArgs);
     if (args != NULL) {
-        printf("[EddieDebug] softu2f_async_callback args ✅\n");
+        printf("[EddieDebug] softu2f_async_callback ✅ args = %llu\n", (uint64_t) args);
 //        for (int i = 0; i < numArgs ; i++) {
 //            printf("[EddieDebug] softu2f_async_callback arg(%d) = %llu\n", i, args[i]);
 //        }
@@ -768,27 +768,18 @@ void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint3
   }
 
   softu2f_ctx *ctx = (softu2f_ctx *)refcon;
-    
-    // A. 直接看App端建立的Buffer是否有值
-    if (ctx->outputBufferArray != NULL) {
-        U2FHID_FRAME* frame = &(ctx->outputBufferArray[0]);
-        softu2f_debug_frame(ctx, frame, true);
-        printf("-------------------------\n");
-        frame = &(ctx->outputBufferArray[1]);
-        softu2f_debug_frame(ctx, frame, true);
-    }
-    printf("-------------------------\n");
+    U2FHID_FRAME* frame = NULL;
     // B. 傳過來的 args 位置，是否有值
     if (args != NULL) {
-        //uint64_t address = *args;
-        //printf("address = %llu\n", address);
-        U2FHID_FRAME* frame = (U2FHID_FRAME*) &(args[0]);
+        frame = (U2FHID_FRAME*) args;
         softu2f_debug_frame(ctx, frame, true);
-        printf("-------------------------\n");
-        frame = (U2FHID_FRAME*) &(args[1]);
-        softu2f_debug_frame(ctx, frame, true);
+//        for (int i = 0; i < numArgs ; i++) {
+//            frame = (U2FHID_FRAME*) &(args[i]);
+//            softu2f_debug_frame(ctx, frame, true);
+//        }
     }
-/*
+
+    /*
   U2FHID_FRAME *frame;
   if (numArgs * sizeof(io_user_reference_t) != sizeof(U2FHID_FRAME)) {
       softu2f_log(ctx, "Unexpected argument count in softu2f_async_callback.\n");
