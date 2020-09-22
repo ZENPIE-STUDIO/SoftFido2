@@ -771,12 +771,16 @@ void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint3
     U2FHID_FRAME* frame = NULL;
     // B. 傳過來的 args 位置，是否有值
     if (args != NULL) {
-        frame = (U2FHID_FRAME*) args;
-        softu2f_debug_frame(ctx, frame, true);
-//        for (int i = 0; i < numArgs ; i++) {
-//            frame = (U2FHID_FRAME*) &(args[i]);
-//            softu2f_debug_frame(ctx, frame, true);
-//        }
+        //frame = (U2FHID_FRAME*) args[0];
+        //softu2f_debug_frame(ctx, frame, true);
+        for (int i = 0; i < numArgs ; i++) {
+            uint64_t address = args[i];
+            printf("%d address = %llu\n", i, address);
+            if (address > 0) {
+                frame = (U2FHID_FRAME*) address;
+                softu2f_debug_frame(ctx, frame, true);
+            }
+        }
     }
 
     /*
