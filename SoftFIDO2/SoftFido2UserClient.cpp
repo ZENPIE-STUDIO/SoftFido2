@@ -12,11 +12,14 @@
 #include <DriverKit/OSData.h>
 #include <DriverKit/IODispatchQueue.h>
 #include <DriverKit/IOMemoryMap.h>
+#include <DriverKit/IOBufferMemoryDescriptor.h>
 #include "UserKernelShared.h"
 #include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 #include "SoftFido2UserClient.h"
 #include "SoftFido2Device.h"
 #include "BufMemoryUtils.hpp"
+//#include <string.h>
+//#include <stdio.h>
 
 #define LOG_PREFIX "[SoftFido2][UserClient] "
 
@@ -28,7 +31,7 @@ struct SoftFido2UserClient_IVars {
     //IODispatchQueue* commandQueue = nullptr;
     //
     OSAction* notifyFrameAction = nullptr;
-    IOMemoryDescriptor* notifyFrameMemoryDesc = nullptr;
+    IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;
     IOMemoryDescriptor* ouputDescriptor = nullptr;  // structureOutputDescriptor
 };
 
@@ -48,6 +51,7 @@ bool SoftFido2UserClient::init() {
 void SoftFido2UserClient::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
 
+    OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
     OSSafeReleaseNULL(ivars->notifyFrameAction);
     OSSafeReleaseNULL(ivars->fido2Device);
     IOSafeDeleteNULL(ivars, SoftFido2UserClient_IVars, 1);
@@ -103,6 +107,20 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
  DriverKit 沒有
  IOReturn SoftU2FUserClient::clientClose(void) {}
  */
+// 結果列印不出東西 textBuffer = <private>
+//kern_return_t IMPL(SoftFido2UserClient, dump) {
+//    uint8_t* byteArray = reinterpret_cast<uint8_t*>(address);
+//    char textBuffer[512], hexBuf[6];
+//    strlcpy(textBuffer, "DATA: ", 256);
+//    for (int i = 0; i < length; i++) {
+//        snprintf(hexBuf, 6, "%02x ", byteArray[i]);
+//        strlcat(textBuffer, hexBuf, 256);
+//    }
+//    strlcat(textBuffer, "\n", 256);
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "textBuffer = %s", textBuffer);
+//    return kIOReturnSuccess;
+//}
+
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
     // <<< GetLength >>>
@@ -116,65 +134,99 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
-    // <<< PrepareForDMA >>>
-//    uint64_t flags = 0;
-//    uint64_t dmaLength = 0;
-//    uint32_t dmaSegmentCount = 0;
-//    IOAddressSegment segments[32];
-//    ret = report->PrepareForDMA(0, this, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
-//        //return ret;
-//    } else {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
-//        if (dmaSegmentCount > 0) {
-//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.address = %llu", segments[0].address);
-//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.length = %llu", segments[0].length);
+    // << 這裡 Map 會失敗 >>
+//    uint64_t address1;
+//    uint64_t len1;
+//    ret = report->Map(0, 0, 0, 0, &address1, &len1);
+//    if (ret == kIOReturnSuccess) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address1 = %llu", address1);
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len1 = %llu", len1);
+//        uint8_t* byteArray = reinterpret_cast<uint8_t*>(address1);
+//        char textBuffer[256], hexBuf[6];
+//        strlcpy(textBuffer, "DATA: ", 256);
+//        for (int i = 0; i < len1; i++) {
+//            snprintf(hexBuf, 6, "%02x ", byteArray[i]);
+//            strlcat(textBuffer, hexBuf, 256);
 //        }
+//        strlcat(textBuffer, "\n", 256);
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "textBuffer = %s", textBuffer);
+//    } else {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
 //    }
-    // -----
-    // <<< Map >>>
-//    uint64_t address = 0;
-//    uint64_t len = 0;
-//    //ret =
-//    report->Map(0, 0, 0, 0, &address, &len);
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map > address = %llu,  len = %llu", address, len);
-    //    if (ret != kIOReturnSuccess) {
-    //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map Failed!");
-    //        //return ret;
-    //    } else {
-    //
-    // ------
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "Before AsyncCompletion");
-    //ivars->notifyFrameAction->ivars->address
-    if (ivars->notifyFrameAction != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameAction ");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameAction is null");
-    }
+    //----------------------------
 
-    uint64_t address = 0;
-    uint64_t len = 0;
-    if (ivars->notifyFrameMemoryDesc != nullptr) {
-        ivars->notifyFrameMemoryDesc->Map(0, 0, 0, 0, &address, &len);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc->Map > address = %llu,  len = %llu", address, len);
-    }
+//    uint64_t notifyAddress = 0;
+//    uint64_t notifyLength = 0;
+//    //IOMemoryMap* notifyMap = nullptr;
+//    ivars->notifyFrameMemoryDesc->Map(0, 0, 0, 0, &notifyAddress, &notifyLength);
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyAddress = %llu", notifyAddress);
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyLength = %llu", notifyLength);
     
-//    IOBufferMemoryDescriptor* bufMemDesc = nullptr;
-//    int kr = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &bufMemDesc);
-//    bufMemDesc->Map(0, 0, 0, 0, &address, &len);
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "bufMemDesc (%d) > address = %llu,  len = %llu", kr, address, len);
-    //IOUserClientAsyncReferenceArray aysncRefArray;
+    // report CreateMapping 都失敗
+//    ret = report->CreateMapping(kIOMemoryMapFixedAddress, notifyAddress, 0, notifyLength, 0, &notifyMap);
+//    if (notifyMap != nullptr) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "kIOMemoryMap notifyMap address = %llu", notifyMap->GetAddress());
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "kIOMemoryMap notifyMap length = %llu", notifyMap->GetLength());
+//    } else {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "kIOMemoryMap notifyMap failed = %d", ret);
+//    }
+    
+    IOUserClientAsyncArgumentsArray args;
+    // <<< PrepareForDMA >>>
+    uint64_t flags = 0;
+    uint64_t dmaLength = 0;
+    uint32_t dmaSegmentCount = 1;
+    IOAddressSegment segments[32];
+    // 可以得到 1個 block 64 bytes
+    ret = report->PrepareForDMA(0, this, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
+    //IOMemoryDescriptor* outputReport = nullptr;
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
+        //return ret;
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+        if (dmaSegmentCount > 0) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.address = %llu", segments[0].address);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.length = %llu", segments[0].length);
+            
+            // ---------------
+            uint64_t outAddress = 0;
+            uint64_t outLength = 0;
+            ivars->notifyFrameMemoryDesc->Map(0, segments[0].address, segments[0].length, 0, &outAddress, &outLength);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc address = %llu", outAddress);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc length = %llu", outLength);
+            //dump(outAddress, outLength);
+            args[0] = outAddress;
+            
+            // Test
+            IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
+            IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &frameMemoryDesc);
+            frameMemoryDesc->Map(0, segments[0].address, segments[0].length, 0, &outAddress, &outLength);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameMemoryDesc address = %llu", outAddress);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameMemoryDesc length = %llu", outLength);
+            args[1] = outAddress;
+            //ivars->ouputDescriptor->Map(0, segments[0].address, segments[0].length, 0, &outAddress, &outLength);
+            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "ouputDescriptor address = %llu", outAddress);
+            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "ouputDescriptor length = %llu", outLength);
+            //dump(outAddress, outLength);
+//            address = outAddress;
+        }
+    }
+    uint32_t asyncDataCount = 2;//(uint32_t) (segments[0].length / 64);
+    //uint32_t asyncDataCount = sizeof(U2FHID_FRAME) / sizeof(uint64_t);
     //AsyncCompletion(OSAction *action, IOReturn status, IOUserClientAsyncArgumentsArray, uint32_t asyncDataCount)
-//    U2FHID_FRAME testFrame;
     // TODO: 傳遞的內容是 asyncDataCount個 8bytes => U2FHID_FRAME size 64bytes
     //      asyncDataCount 是 64/8
-    uint32_t asyncDataCount = (uint32_t) len;
-    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, (uint64_t*) address, asyncDataCount);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion");
+    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, args, asyncDataCount);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion address = %llu", address);
     return kIOReturnSuccess;
+    // 舊的參考
+    //    numArgs = sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t) = 64/8
+    //io_user_reference_t *args = (io_user_reference_t *)reportMap->getAddress();
+    //sendAsyncResult64(*_notifyRef, kIOReturnSuccess, args, sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t));
+
 }
 
 /* IOUserClientMethodDispatch
@@ -264,26 +316,10 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             ivars->notifyFrameAction = arguments->completion;
             ivars->notifyFrameAction->retain();
             // 自行建立
-//            IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
-//            IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &frameMemoryDesc);
-//            ivars->notifyFrameMemoryDesc = frameMemoryDesc;
-//            ivars->notifyFrameMemoryDesc->retain();
-            // 使用 structureInput 傳遞 App端 callback
-            if (arguments->structureInput != nullptr) {
-                size_t dataLength = arguments->structureInput->getLength();
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "  structureInput getLength = %lu", dataLength);
-                IOMemoryDescriptor* input = nullptr;
-                uint64_t* dataPtr = (uint64_t*) arguments->structureInput->getBytesNoCopy();
-                for (size_t i = 0; i < dataLength; i++) {
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX " dataPtr[%lu] = %llu", i, dataPtr[i]);
-                }
-
-                BufMemoryUtils::createWithBytes(arguments->structureInput->getBytesNoCopy(),
-                                                arguments->structureInput->getLength() * sizeof(uint64_t),
-                                                &input);
-                ivars->notifyFrameMemoryDesc = input;
-                ivars->notifyFrameMemoryDesc->retain();
-            }
+            IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
+            IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &frameMemoryDesc);
+            ivars->notifyFrameMemoryDesc = frameMemoryDesc;
+            ivars->notifyFrameMemoryDesc->retain();
             //
             if (arguments->structureOutputDescriptor != nullptr) {
                 ivars->ouputDescriptor = arguments->structureOutputDescriptor;

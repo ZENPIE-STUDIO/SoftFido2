@@ -38,6 +38,9 @@ public:
     //virtual IOReturn clientClose(void) override;
     virtual kern_return_t frameReceived(IOMemoryDescriptor *report, OSAction* action);
     
+    
+    //virtual kern_return_t dump(uint64_t address, uint64_t length);
+    
 protected:
     //kern_return_t (*IOUserClientMethodFunction)(OSObject * target, void * reference, IOUserClientMethodArguments * arguments);
     //static kern_return_t sSendFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);

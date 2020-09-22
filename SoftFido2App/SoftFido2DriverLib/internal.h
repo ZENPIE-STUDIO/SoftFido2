@@ -20,6 +20,8 @@ struct softu2f_ctx {
   pthread_mutex_t mutex;
   CFRunLoopRef run_loop;
 
+    size_t outputBufferArrayCount; //
+    U2FHID_FRAME* outputBufferArray; //
   // Incomming messages.
   softu2f_hid_message *msg_list;
 

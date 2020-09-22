@@ -75,15 +75,9 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
     
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport Report GetClassName = %s", report->GetClassName());
-    
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
-        // <<< Map >>>
-        uint64_t address = 0;
-        uint64_t len = 0;
-        report->Map(0, 0, 0, 0, &address, &len);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map > address = %llu,  len = %llu", address, len);
         ret = userClient->frameReceived(report, action);
     }
     // Sleep for a bit to make the HID conformance tests happy.
