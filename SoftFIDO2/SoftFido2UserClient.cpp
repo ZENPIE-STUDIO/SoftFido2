@@ -28,7 +28,7 @@ struct SoftFido2UserClient_IVars {
     SoftFido2Device* fido2Device;
     //IODispatchQueue* commandQueue = nullptr;
     //
-    uint64_t notifyArgs;
+    uint64_t notifyArgs[8];
     OSAction* notifyFrameAction = nullptr;
     IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;
 //    IOMemoryDescriptor* ouputDescriptor = nullptr;  // structureOutputDescriptor
@@ -178,7 +178,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
             IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
             IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &frameMemoryDesc);
             ivars->notifyFrameMemoryDesc = frameMemoryDesc;
-            frameMemoryDesc->Map(0, segments[0].address, segments[0].length, 0, &outAddress, &outLength);
+            frameMemoryDesc->Map(0, segments[0].address, segments[0].length, IOVMPageSize, &outAddress, &outLength);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc address = %llu", outAddress);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc length = %llu", outLength);
             // TRY: 故意寫一些假資料進去(好像沒影響
@@ -188,7 +188,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
 //            byteArray[2] = 0x34;
 //            byteArray[3] = 0x12;
             // 無法dump(outAddress, outLength);
-            ivars->notifyArgs = outAddress;
+            ivars->notifyArgs[0] = outAddress;
 //            args[0] = outAddress;
         }
     }
@@ -199,8 +199,10 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     //      asyncDataCount 是 64/8
     //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, args, asyncDataCount);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) args, asyncDataCount);
-    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, &(ivars->notifyArgs), asyncDataCount);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", ivars->notifyArgs, asyncDataCount);
+    // source 內部會 check:   asyncDataCount 要小於 Array Size
+    // if (asyncDataCount > (sizeof(msg->content.__asyncData) / sizeof(msg->content.__asyncData[0]))) return;
+    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) ivars->notifyArgs, asyncDataCount);
     return kIOReturnSuccess;
     // 舊的參考
     //    numArgs = sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t) = 64/8

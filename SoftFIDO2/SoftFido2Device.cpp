@@ -72,8 +72,30 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         case kIOHIDReportTypeFeature: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Feature)"); break;
         case kIOHIDReportTypeCount: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Count)"); break;
     }
+    // 心得：結果這裡options=0
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport IOOptionBits = %u", options);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
-    
+    _IOMDPrivateState state;
+    ret = report->_CopyState(&state);
+    if (ret == kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.length = %llu", state.length);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.options = %llu", state.options);
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "_CopyState failed = %d", ret);
+    }
+    //
+    uint64_t address;
+    uint64_t len;
+    ret = report->Map(options, 0, 0, IOVMPageSize, &address, &len);
+    if (ret == kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", address);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len = %llu", len);
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map    sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map   code err = %x", err_get_code(ret));
+    }
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport Report GetClassName = %s", report->GetClassName());
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;

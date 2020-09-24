@@ -16,6 +16,11 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
+//    uint64_t args[8];
+//    size_t ArraySize = sizeof(args);
+//    size_t test = ArraySize / sizeof(args[0]);
+////    if (asyncDataCount > (sizeof(msg->content.__asyncData) / sizeof(msg->content.__asyncData[0]))) return;
+//    NSLog(@"test = %lu", test);
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
