@@ -15,6 +15,7 @@
 		2780EBC824FF76EA009332AC /* SoftFido2Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBC724FF76EA009332AC /* SoftFido2Device.cpp */; };
 		2780EBCA24FF7733009332AC /* SoftFido2UserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBC924FF7733009332AC /* SoftFido2UserClient.cpp */; };
 		2780EBCC24FF774C009332AC /* SoftFido2UserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBCB24FF7741009332AC /* SoftFido2UserClient.iig */; };
+		27810CDB251DE7D20063BD50 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 277C580825076F1A00D156BF /* USBDriverKit.framework */; };
 		27AA6845250F402D00FDB44A /* u2f_hid.h in Headers */ = {isa = PBXBuildFile; fileRef = 27AA6844250F402D00FDB44A /* u2f_hid.h */; };
 		27AA6851250F57DD00FDB44A /* softu2f.c in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684E250F57DD00FDB44A /* softu2f.c */; };
 		27AA6852250F57DD00FDB44A /* FidoHID.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684F250F57DD00FDB44A /* FidoHID.m */; };
@@ -93,6 +94,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				277C580725076F1000D156BF /* DriverKit.framework in Frameworks */,
+				27810CDB251DE7D20063BD50 /* USBDriverKit.framework in Frameworks */,
 				2780EBC424FF73D0009332AC /* HIDDriverKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -208,7 +210,6 @@
 				27038DA824FE4B8D002F7F77 /* Sources */,
 				27038DA924FE4B8D002F7F77 /* Frameworks */,
 				27038DAA24FE4B8D002F7F77 /* Resources */,
-				271C0C502508CB0100F9DE4E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -226,7 +227,6 @@
 				27CBC2722500907500400E4D /* Sources */,
 				27CBC2732500907500400E4D /* Frameworks */,
 				27CBC2742500907500400E4D /* Resources */,
-				271C0C512508CB9200F9DE4E /* ShellScript */,
 				27CA55F6251D9D5B00B74358 /* Embed System Extensions */,
 			);
 			buildRules = (
@@ -293,43 +293,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		271C0C502508CB0100F9DE4E /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"$CONFIGURATION\" == \"Debug\" ] ; then\n  echo \"Debug build, codesigning and injecting entitlements\"\n  signing_identity=\"Apple Development: eddie.hua@gotrustid.com (7BD74MVZDD)\"\n  debug_entitlements_file_path=\"$SRCROOT/SoftFIDO2/SoftFIDO2.entitlements\"\n  codesign --verify --entitlements \"$debug_entitlements_file_path\" -f -s \"$signing_identity\" \"$CODESIGNING_FOLDER_PATH\"\nfi\n";
-		};
-		271C0C512508CB9200F9DE4E /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"$CONFIGURATION\" == \"Debug\" ] ; then\n  echo \"Debug build, codesigning and injecting entitlements\"\n  signing_identity=\"Apple Development: eddie.hua@gotrustid.com (7BD74MVZDD)\"\n  debug_entitlements_file_path=\"$SRCROOT/SoftFido2App/SoftFido2App.entitlements\"\n  codesign --verify --entitlements \"$debug_entitlements_file_path\" -f -s \"$signing_identity\" \"$CODESIGNING_FOLDER_PATH\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		27038DA824FE4B8D002F7F77 /* Sources */ = {
