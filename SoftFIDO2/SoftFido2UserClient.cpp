@@ -18,6 +18,8 @@
 #include "SoftFido2UserClient.h"
 #include "SoftFido2Device.h"
 #include "BufMemoryUtils.hpp"
+#include <string.h>
+#include <stdio.h>
 
 #define LOG_PREFIX "[SoftFido2][UserClient] "
 
@@ -30,8 +32,8 @@ struct SoftFido2UserClient_IVars {
     //
     uint64_t notifyArgs[8];
     OSAction* notifyFrameAction = nullptr;
-    IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;
-//    IOMemoryDescriptor* ouputDescriptor = nullptr;  // structureOutputDescriptor
+    IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;  // 目前停用：因為傳出給app，也沒得到假資料
+    IOMemoryDescriptor* outputDescriptor = nullptr;  // structureOutputDescriptor
 };
 
 
@@ -133,65 +135,74 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
-    // 注意：直接存取 segments[0].address，會導致Driver停止
-    if (ivars->notifyFrameMemoryDesc != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc Release");
-        OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
-    }
-    // 使用 IOBufferMemoryDescriptor : A memory buffer allocated in the caller's address space.
-    //    kIOMemoryDirectionOut : A buffer to which the current process writes.
-    // 將 Physical Address MAPING 過去 : 無法驗證內容?
-    uint64_t outAddress = 0;
-    uint64_t outLength = 0;
-    IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
-    IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, 64, 0, &frameMemoryDesc);
-    ivars->notifyFrameMemoryDesc = frameMemoryDesc;
-    frameMemoryDesc->Map(0, 0, length, 0, &outAddress, &outLength);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc address = %llu", outAddress);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc length = %llu", outLength);
-    ivars->notifyArgs[0] = outAddress;
-    // [失敗] report map到 output buffer 的address
-    IOMemoryMap* map = nullptr;
-    ret = report->CreateMapping(kIOMemoryMapFixedAddress, outAddress, outLength, length, 0, &map);
-    if (ret == kIOReturnSuccess) {
-        ivars->notifyArgs[0] = map->GetAddress();
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping address = %llu", map->GetAddress());
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping length = %llu", map->GetLength());
+//    if (ivars->notifyFrameMemoryDesc != nullptr) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc Release");
+//        OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
+//    }
+    
+    // <<< PrepareForDMA >>>
+    uint64_t flags = 0;
+    uint64_t dmaLength = 0;
+    uint32_t dmaSegmentCount = 1;
+    IOAddressSegment segments[32];
+    // 可以得到 1個 block 64 bytes
+    ret = report->PrepareForDMA(0, ivars->fido2Device, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
+        //return ret;
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping failed = %d", ret);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping system err = %x", err_get_system(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping    sub err = %x", err_get_sub(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping   code err = %x", err_get_code(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+        if (dmaSegmentCount > 0) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.address = %llu", segments[0].address);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.length = %llu", segments[0].length);
+            // 注意：直接存取 segments[0].address，會導致Driver停止
+            // output Buffer Descriptor 所 mapping 的位置，可以寫入資料
+            uint64_t outAddress = 0;
+            uint64_t outLength = 0;
+            ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
+            if (ret == kIOReturnSuccess) {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map address = %llu", outAddress);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map length = %llu", outLength);
+                // (賀!) 使用外部傳入的 output buffer，可以成功讓呼叫者得到資料
+                uint8_t testByteArray[64] = {1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8,
+                    1,2,3,4,5,6,7,8
+                };
+                memcpy((void*) outAddress, (void*) testByteArray, 64);
+                ivars->notifyArgs[0] = outAddress;
+            } else {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map failed = %d", ret);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map system err = %x", err_get_system(ret));
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map    sub err = %x", err_get_sub(ret));
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map   code err = %x", err_get_code(ret));
+            }
+        }
     }
-    // TRY: 故意寫一些假資料進去(好像沒影響
-//      uint8_t* byteArray = (uint8_t*) outAddress;
-//      byteArray[0] = 0x78;
-//      byteArray[1] = 0x56;
-//      byteArray[2] = 0x34;
-//      byteArray[3] = 0x12;
-    // 無法dump(outAddress, outLength);
-    // << 這裡 Map 會失敗 >>
-//    uint64_t address1;
-//    uint64_t len1;
-//    ret = report->Map(0, 0, 0, 0, &address1, &len1);
+    
+    // [失敗] report map到 output buffer 的address
+//    IOMemoryMap* map = nullptr;
+//    ret = report->CreateMapping(kIOMemoryMapFixedAddress, outAddress, outLength, length, 0, &map);
 //    if (ret == kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address1 = %llu", address1);
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len1 = %llu", len1);
+//        ivars->notifyArgs[0] = map->GetAddress();
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping address = %llu", map->GetAddress());
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping length = %llu", map->GetLength());
 //    } else {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map system err = %x", err_get_system(ret));
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map    sub err = %x", err_get_sub(ret));
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map   code err = %x", err_get_code(ret));
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping failed = %d", ret);
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping system err = %x", err_get_system(ret));
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping    sub err = %x", err_get_sub(ret));
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping   code err = %x", err_get_code(ret));
 //    }
     //----------------------------
     //IOUserClientAsyncArgumentsArray args;
-//    uint32_t asyncDataCount = 8;//;//(uint32_t) (segments[0].length / 64);
     uint32_t asyncDataCount = 1;
     //AsyncCompletion(OSAction *action, IOReturn status, IOUserClientAsyncArgumentsArray, uint32_t asyncDataCount)
-    // TODO: 傳遞的內容是 asyncDataCount個 8bytes => U2FHID_FRAME size 64bytes
-    //      asyncDataCount 是 64/8
-    //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, args, asyncDataCount);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) args, asyncDataCount);
     // source 內部會 check:   asyncDataCount 要小於 Array Size
     // if (asyncDataCount > (sizeof(msg->content.__asyncData) / sizeof(msg->content.__asyncData[0]))) return;
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
@@ -290,10 +301,10 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             ivars->notifyFrameAction = arguments->completion;
             ivars->notifyFrameAction->retain();
             //
-//            if (arguments->structureOutputDescriptor != nullptr) {
-//                ivars->ouputDescriptor = arguments->structureOutputDescriptor;
-//                ivars->ouputDescriptor->retain();
-//            }
+            if (arguments->structureOutputDescriptor != nullptr) {
+                ivars->outputDescriptor = arguments->structureOutputDescriptor;
+                ivars->outputDescriptor->retain();
+            }
             return kIOReturnSuccess;
             //return super::ExternalMethod(selector, arguments, dispatch, target, reference);   // 用這個會失敗!? 可能是 定義的 與 傳入的不符合
         }
@@ -404,3 +415,107 @@ void debugArguments(IOUserClientMethodArguments* arguments) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod arguments is null!");
     }
 }
+
+
+#pragma mark - Backup
+// (有用: 不過是假資料) 用外部傳入的 Output Buffer，就可以成功把資料傳給App
+/*
+void SoftFido2UserClient::putDummyDataToOutputBuffer() {
+    uint64_t outAddress = 0;
+    uint64_t outLength = 0;
+    ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc address = %llu", outAddress);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc length = %llu", outLength);
+    // TRY: 故意寫一些假資料進去
+    uint8_t testByteArray[64] = {1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8
+    };
+    memcpy((void*) outAddress, testByteArray, 64);  // 這樣ok的
+    ivars->notifyArgs[0] = outAddress;
+}*/
+// 故意寫一些假資料，看能不能傳送給 App端 => 在Driver內部建立的Buffer，結果傳不出去????
+/*
+void SoftFido2UserClient::putDummyDataInNotifyFrameMemoryDesc() {
+    uint64_t outAddress = 0;
+    uint64_t outLength = 0;
+    IOBufferMemoryDescriptor* frameMemoryDesc = nullptr;
+    // TRY: 故意寫一些假資料進去
+    uint8_t testByteArray[64] = {1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8,
+        1,2,3,4,5,6,7,8
+    };
+    BufMemoryUtils::createWithBytes(testByteArray, 64, (IOMemoryDescriptor**) &frameMemoryDesc);
+    ivars->notifyFrameMemoryDesc = frameMemoryDesc;
+    frameMemoryDesc->Map(0, 0, 0, 0, &outAddress, &outLength);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc address = %llu", outAddress);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc length = %llu", outLength);
+    dump(outAddress, outLength);
+}
+*/
+
+// 利用 Output Buffer - CreateMapping 時指定 prepareForDMA 得到的位置，結果會失敗
+/*
+void SoftFido2UserClient::tryMappingForPrepareDMA() {
+    IOMemoryMap* map = nullptr;
+    kern_return_t ret = ivars->outputDescriptor->CreateMapping(kIOMemoryMapFixedAddress, segments[0].address, 0, length, 0, &map);
+    if (ret == kIOReturnSuccess) {
+        ivars->notifyArgs[0] = map->GetAddress();
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping address = %llu", map->GetAddress());
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping length = %llu", map->GetLength());
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping    sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor CreateMapping   code err = %x", err_get_code(ret));
+    }
+ 
+ // 這個也是失敗
+ uint64_t outAddress1 = 0;
+ uint64_t outLength1 = 0;
+ ret = ivars->outputDescriptor->Map(kIOMemoryMapFixedAddress,
+                                    segments[0].address, segments[0].length,
+                                    0,
+                                    &outAddress1, &outLength1);
+ if (ret == kIOReturnSuccess) {
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map Fixed address = %llu", outAddress1);
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map length = %llu", outLength1);
+     //memcpy((void*) outAddress, (void*) segments[0].address, segments[0].length);
+     ivars->notifyArgs[0] = outAddress1;
+ } else {
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map failed = %d", ret);
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map system err = %x", err_get_system(ret));
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map    sub err = %x", err_get_sub(ret));
+     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map   code err = %x", err_get_code(ret));
+ }
+}
+*/
+
+// 試 IODMACommand，都是 Driver停止
+/*
+void SoftFido2UserClient::tryIODMACommand() {
+    // SPEC 傳null也是
+    IODMACommandSpecification spec;
+    spec.maxAddressBits = 64;
+    IODMACommand* dmaCmd = nullptr;
+    ret = IODMACommand::Create(ivars->fido2Device, 0, &spec, &dmaCmd);
+    if (dmaCmd != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
+    }
+}
+*/

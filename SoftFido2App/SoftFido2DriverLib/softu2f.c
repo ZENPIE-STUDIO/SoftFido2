@@ -142,10 +142,10 @@ void softu2f_run(softu2f_ctx *ctx) {
     
     // (DriverKit) Try sync Struct
     // TODO: 建立一個大於 4096 的 Buffer
-//    ctx->outputBufferArrayCount = 65; // 64(4096), 65(4160)
-//    size_t frameSize = sizeof(U2FHID_FRAME);
-//    size_t totalSize = frameSize * ctx->outputBufferArrayCount;
-//    ctx->outputBufferArray = (U2FHID_FRAME*) calloc(ctx->outputBufferArrayCount, frameSize);
+    ctx->outputBufferArrayCount = 65; // 64(4096), 65(4160)
+    size_t frameSize = sizeof(U2FHID_FRAME);
+    size_t totalSize = frameSize * ctx->outputBufferArrayCount;
+    ctx->outputBufferArray = (U2FHID_FRAME*) calloc(ctx->outputBufferArrayCount, frameSize);
     
     /*
     ret = IOConnectCallStructMethod(ctx->con, kSoftFidoUserClientNotifyFrame + 1,
@@ -160,21 +160,17 @@ void softu2f_run(softu2f_ctx *ctx) {
     // (DriverKit) Try Async Struct
     softu2f_log(ctx, "[EddieTest] softu2f_async_callback = %llu\n", async_ref[kIOAsyncCalloutFuncIndex]);
     softu2f_log(ctx, "[EddieTest] ctx = %llu\n", async_ref[kIOAsyncCalloutRefconIndex]);
-
     softu2f_log(ctx, "[EddieTest] kIOAsyncCalloutCount = %lu\n", kIOAsyncCalloutCount);
     //softu2f_log(ctx, "[EddieTest] IOConnectCallStructMethod sizeof(io_async_ref64_t) = %lu\n", sizeof(io_async_ref64_t));
     // reference : 用來傳送 async_ref，雖然 Driver那邊在ExternalMethod顯示都是null
-    //   (猜測) DriverKit會把 reference的值，變為呼叫 AsyncCompletion時，OSAction要callback的address
-    //  實驗1: 只用reference傳遞 async_ref, kIOAsyncCalloutCount => 沒用!
-    //  實驗2: 只用inputStruct傳遞 async_ref, kIOAsyncCalloutCount => 可以!
-    //  實驗3: reference 及 inputStruct都放入 async_ref => 可以!
+    //  DriverKit會把 reference的值，變為呼叫 AsyncCompletion時，OSAction要callback的address
     ret = IOConnectCallAsyncStructMethod(ctx->con,
                                          kSoftFidoUserClientNotifyFrame,
                                          mnotification_port,
                                          async_ref, kIOAsyncCalloutCount, // reference
                                          NULL, 0, // inputStruct
-                                         NULL, 0);   // outputStruct
-//                                         ctx->outputBufferArray, &totalSize);   // outputStruct
+                                         //NULL, 0);   // outputStruct
+                                         ctx->outputBufferArray, &totalSize);   // outputStruct
      
   // (KEXT) Tell the kernel how to notify us.
 //  ret = IOConnectCallAsyncScalarMethod(ctx->con, kSoftFidoUserClientNotifyFrame, mnotification_port, async_ref, kIOAsyncCalloutCount, NULL, 0, NULL, 0);
@@ -768,20 +764,17 @@ void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint3
   }
 
   softu2f_ctx *ctx = (softu2f_ctx *)refcon;
-    U2FHID_FRAME* frame = NULL;
-    // B. 傳過來的 args 位置，是否有值
-    if (args != NULL) {
-        frame = (U2FHID_FRAME*) args;
-        softu2f_debug_frame(ctx, frame, true);
-//        for (int i = 0; i < numArgs ; i++) {
-//            uint64_t address = args;
-//            printf("%d address = %llu\n", i, address);
-//            if (address > 0) {
-//                frame = (U2FHID_FRAME*) address;
-//                softu2f_debug_frame(ctx, frame, true);
-//            }
-//        }
-    }
+  U2FHID_FRAME* frame = NULL;
+    
+    // 利用App端準備好的OutputBuffer，就可以成功拿到裡面(目前是我亂放)的資料
+    frame = &(ctx->outputBufferArray[0]);
+    softu2f_debug_frame(ctx, frame, true);
+
+    // 傳過來的 args 位置，拿到的值都怪怪的
+//    if (args != NULL) {
+//        frame = (U2FHID_FRAME*) args;
+//        softu2f_debug_frame(ctx, frame, true);
+//    }
 
     /*
   U2FHID_FRAME *frame;

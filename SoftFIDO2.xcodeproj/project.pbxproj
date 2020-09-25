@@ -19,30 +19,40 @@
 		27AA6851250F57DD00FDB44A /* softu2f.c in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684E250F57DD00FDB44A /* softu2f.c */; };
 		27AA6852250F57DD00FDB44A /* FidoHID.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684F250F57DD00FDB44A /* FidoHID.m */; };
 		27AA6853250F57DD00FDB44A /* SoftU2FContants.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AA6850250F57DD00FDB44A /* SoftU2FContants.m */; };
+		27CA55F3251D9D5B00B74358 /* com.gotrustid.SoftFIDO2.dext in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 27038DAC24FE4B8D002F7F77 /* com.gotrustid.SoftFIDO2.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		27CBC27A2500907500400E4D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CBC2792500907500400E4D /* AppDelegate.m */; };
 		27CBC27D2500907500400E4D /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CBC27C2500907500400E4D /* ViewController.m */; };
 		27CBC27F2500907600400E4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 27CBC27E2500907600400E4D /* Assets.xcassets */; };
 		27CBC2822500907600400E4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27CBC2802500907600400E4D /* Main.storyboard */; };
 		27CBC2852500907600400E4D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CBC2842500907600400E4D /* main.m */; };
-		27CBC28B2500913B00400E4D /* com.gotrustid.SoftFIDO2.dext in CopyFiles */ = {isa = PBXBuildFile; fileRef = 27038DAC24FE4B8D002F7F77 /* com.gotrustid.SoftFIDO2.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		27CA55F4251D9D5B00B74358 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 27038DA324FE4B8D002F7F77 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27038DAB24FE4B8D002F7F77;
+			remoteInfo = SoftFIDO2;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		27CBC28A2500913000400E4D /* CopyFiles */ = {
+		27CA55F6251D9D5B00B74358 /* Embed System Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				27CBC28B2500913B00400E4D /* com.gotrustid.SoftFIDO2.dext in CopyFiles */,
+				27CA55F3251D9D5B00B74358 /* com.gotrustid.SoftFIDO2.dext in Embed System Extensions */,
 			);
+			name = "Embed System Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		27038DAC24FE4B8D002F7F77 /* com.gotrustid.SoftFIDO2.dext */ = {isa = PBXFileReference; explicitFileType = "wrapper.driver-extension"; includeInIndex = 0; path = com.gotrustid.SoftFIDO2.dext; sourceTree = BUILT_PRODUCTS_DIR; };
-		27038DAF24FE4B8D002F7F77 /* DriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DriverKit.framework; path = Library/Frameworks/DriverKit.framework; sourceTree = DEVELOPER_DIR; };
 		27038DB224FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = com_gotrustid_SoftFIDO2_SoftFido2Driver.cpp; sourceTree = "<group>"; };
 		27038DB424FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = com_gotrustid_SoftFIDO2_SoftFido2Driver.iig; sourceTree = "<group>"; };
 		27038DB624FE4B8D002F7F77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -122,7 +132,6 @@
 				277C580825076F1A00D156BF /* USBDriverKit.framework */,
 				277C580625076F1000D156BF /* DriverKit.framework */,
 				2780EBC324FF73CF009332AC /* HIDDriverKit.framework */,
-				27038DAF24FE4B8D002F7F77 /* DriverKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -217,12 +226,13 @@
 				27CBC2722500907500400E4D /* Sources */,
 				27CBC2732500907500400E4D /* Frameworks */,
 				27CBC2742500907500400E4D /* Resources */,
-				27CBC28A2500913000400E4D /* CopyFiles */,
 				271C0C512508CB9200F9DE4E /* ShellScript */,
+				27CA55F6251D9D5B00B74358 /* Embed System Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				27CA55F5251D9D5B00B74358 /* PBXTargetDependency */,
 			);
 			name = SoftFido2App;
 			productName = SoftFido2App;
@@ -235,7 +245,7 @@
 		27038DA324FE4B8D002F7F77 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1160;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = GoTrustID;
 				TargetAttributes = {
 					27038DAB24FE4B8D002F7F77 = {
@@ -350,6 +360,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		27CA55F5251D9D5B00B74358 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27038DAB24FE4B8D002F7F77 /* SoftFIDO2 */;
+			targetProxy = 27CA55F4251D9D5B00B74358 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		27CBC2802500907600400E4D /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
@@ -388,6 +406,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -417,6 +436,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = driverkit;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -446,6 +466,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -468,16 +489,20 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = driverkit;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
 		27038DBB24FE4B8D002F7F77 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "";
+				CLANG_ANALYZER_DEADCODE_DEADSTORES = NO;
+				CLANG_ANALYZER_DIVIDE_BY_ZERO = NO;
+				CLANG_ANALYZER_NULL_DEREFERENCE = NO;
+				CODE_SIGN_ENTITLEMENTS = SoftFIDO2/SoftFIDO2.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 2P68G9Z44L;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -489,7 +514,8 @@
 				OTHER_CODE_SIGN_FLAGS = "--options=runtime";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gotrustid.SoftFIDO2;
 				PRODUCT_NAME = "$(inherited)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = SoftFIDO2;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
 			};
@@ -499,7 +525,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = SoftFIDO2/SoftFIDO2.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: GoTrustID Inc. (2P68G9Z44L)";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = 2P68G9Z44L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -524,35 +550,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CODE_SIGN_ENTITLEMENTS = "";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
-				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = SoftFido2App/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				OTHER_CODE_SIGN_FLAGS = "--options=runtime";
-				PRODUCT_BUNDLE_IDENTIFIER = com.gotrustid.MiDaemon;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = macosx;
-				SYMROOT = build;
-			};
-			name = Debug;
-		};
-		27CBC2892500907600400E4D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CODE_SIGN_ENTITLEMENTS = SoftFido2App/SoftFido2App.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: GoTrustID Inc. (2P68G9Z44L)";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -570,6 +569,35 @@
 				PROVISIONING_PROFILE_SPECIFIER = MiDaemon;
 				SDKROOT = macosx;
 				SYMROOT = build;
+				VALID_ARCHS = x86_64;
+			};
+			name = Debug;
+		};
+		27CBC2892500907600400E4D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CODE_SIGN_ENTITLEMENTS = SoftFido2App/SoftFido2App.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2P68G9Z44L;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = SoftFido2App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_CODE_SIGN_FLAGS = "--options=runtime";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gotrustid.MiDaemon;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = MiDaemon;
+				SDKROOT = macosx;
+				SYMROOT = build;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};

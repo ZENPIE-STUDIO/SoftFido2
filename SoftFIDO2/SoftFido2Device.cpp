@@ -7,7 +7,10 @@
 //
 #include <os/log.h>
 
+#include <DriverKit/IODMACommand.h>
 #include <DriverKit/IOLib.h>
+#include <DriverKit/IOMemoryDescriptor.h>
+#include <DriverKit/IOMemoryMap.h>
 #include <DriverKit/OSCollections.h>
 #include <HIDDriverKit/IOHIDInterface.h>
 #include <HIDDriverKit/IOHIDDeviceKeys.h>
@@ -22,6 +25,7 @@
 
 struct SoftFido2Device_IVars {
     SoftFido2UserClient* provider;
+    
 };
 
 bool SoftFido2Device::init() {
@@ -60,6 +64,51 @@ kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
 //    return ret;
 //}
 
+void tryIODMACommand(SoftFido2Device* device, IOMemoryDescriptor* report) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "tryIODMACommand");
+    // <<< IODMACommand >>>
+    IODMACommandSpecification spec;
+    spec.maxAddressBits = 64;
+    IODMACommand* dmaCmd = nullptr;
+    kern_return_t ret = IODMACommand::Create(device, 0, &spec, &dmaCmd);
+    if (ret == kIOReturnSuccess) {
+        uint64_t flags = 0;
+        uint32_t dmaSegmentCount = 1;
+        IOAddressSegment segments[32];
+        dmaCmd->PrepareForDMA(0, report, 0, 0, &flags, &dmaSegmentCount, segments);
+        if (ret == kIOReturnSuccess) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA flags = %llu", flags);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+
+            uint64_t offset = 0;
+            uint64_t length = 0;
+            IOMemoryDescriptor* testMemDesc = nullptr;
+            ret = dmaCmd->GetPreparation(&offset, &length, &testMemDesc);
+            if (ret == kIOReturnSuccess) {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "  GetPreparation offset = %llu", offset);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "  GetPreparation length = %llu", length);
+            } else {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand GetPreparation failed = %d", ret);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "          sub err = %x", err_get_sub(ret));
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "         code err = %x", err_get_code(ret));
+            }
+            
+            ret = dmaCmd->CompleteDMA(0);
+            if (ret == kIOReturnSuccess) {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand CompleteDMA Success");
+            } else {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand CompleteDMA failed = %d", ret);
+            }
+        } else {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA failed = %d", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "          sub err = %x", err_get_sub(ret));
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "         code err = %x", err_get_code(ret));
+        }
+    }
+}
+
 kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
                                          IOHIDReportType reportType,
                                          IOOptionBits options,
@@ -72,6 +121,7 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         case kIOHIDReportTypeFeature: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Feature)"); break;
         case kIOHIDReportTypeCount: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Count)"); break;
     }
+    //tryIODMACommand(this, report);
     // 心得：結果這裡options=0
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport IOOptionBits = %u", options);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
@@ -80,22 +130,31 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     if (ret == kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.length = %llu", state.length);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.options = %llu", state.options);
+        // state.options = 33050
+        //    可知 kIOMemoryPersistent | kIOMemoryMapCopyOnWrite
+        //          kIOMemoryHostOnly | 2000(_kIOMemorySourceSegment?)
+        //          kIOMemoryTypeUIO
     } else {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "_CopyState failed = %d", ret);
     }
-    //
-    uint64_t address;
-    uint64_t len;
-    ret = report->Map(options, 0, 0, IOVMPageSize, &address, &len);
+    // 用 Map, CreateMapping 都失敗
+    /*
+//    uint64_t address;
+//    uint64_t len;
+    IOMemoryMap* map = nullptr;
+    ret = report->CreateMapping(kIOMemoryMapCacheModeDefault, 0, 0, 64, 0, &map);
+    //ret = report->Map(0, 0, 0, 0, &address, &len);
     if (ret == kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", address);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len = %llu", len);
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", address);
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len = %llu", len);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", map->GetAddress());
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "len = %llu", map->GetLength());
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map system err = %x", err_get_system(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map    sub err = %x", err_get_sub(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map   code err = %x", err_get_code(ret));
-    }
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "          sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "         code err = %x", err_get_code(ret));
+    }*/
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport Report GetClassName = %s", report->GetClassName());
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
@@ -128,12 +187,13 @@ bool SoftFido2Device::handleStart(IOService* provider) {
         return false;
     }
     //ivars->provider-> 不用 setReady
+    
     return true;
 }
 
 OSDictionary* SoftFido2Device::newDeviceDescription(void) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "newDeviceDescription");
-    auto dictionary = OSDictionary::withCapacity(10);
+    auto dictionary = OSDictionary::withCapacity(12);
     if (!dictionary) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "OSDictionary::withCapacity failed");
         return nullptr;
@@ -141,8 +201,8 @@ OSDictionary* SoftFido2Device::newDeviceDescription(void) {
 
     // Set kIOHIDRegisterServiceKey in order to call registerService in IOHIDDevice::start.
     OSDictionarySetValue(dictionary, "RegisterService", kOSBooleanTrue);
-//    OSDictionarySetValue(dictionary, "HIDDefaultBehavior", kOSBooleanTrue);
-//    OSDictionarySetValue(dictionary, "AppleVendorSupported", kOSBooleanTrue);
+    OSDictionarySetValue(dictionary, "HIDDefaultBehavior", kOSBooleanTrue);
+    OSDictionarySetValue(dictionary, "AppleVendorSupported", kOSBooleanTrue);
     
     if (auto usagePage = OSNumber::withNumber(static_cast<uint32_t>(FIDO_USAGE_PAGE), 32)) {
         OSDictionarySetValue(dictionary, kIOHIDPrimaryUsagePageKey, usagePage);
@@ -190,3 +250,6 @@ OSData* SoftFido2Device::newReportDescriptor(void) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "newReportDescriptor size = %lu", kSizeOfReportDescriptor);
     return OSData::withBytes(kFido2HidReportDescriptor, kSizeOfReportDescriptor);
 }
+
+#pragma mark - 備份一些測試function
+// 結果: 無法建立，連LOG都看不到…
