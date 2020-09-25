@@ -151,6 +151,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
         //return ret;
     } else {
+        // flags = 2 (kIOMemoryDirectionOut)
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
