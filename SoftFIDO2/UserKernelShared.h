@@ -18,6 +18,28 @@ enum {
     kNumberOfMethods // Must be last
 };
 
+// FIDO2 (Ming)
+//const uint8_t kFido2HidReportDescriptor[] = {
+//    0x06, 0xD0, 0xF1, // Usage Page (Reserved 0xF1D0)
+//    0x09, 0x01,       // Usage (0x01)
+//    0xA1, 0x01,       // Collection (Application)
+//
+//    //0x85,0x01,      // REPORT_ID (1) For FIDO, NO Report Id
+//    0x15, 0x00,       //   Logical Minimum (0)
+//    0x26, 0xFF, 0x00, //   Logical Maximum (255)
+//
+//    0x09, 0x01,       //   Usage (Vendor Usage 0x01)
+//    0x75, 0x08,       //   Report Size (8)
+//    0x96, 0x40,       //   Report Count
+//    0x81, 0x00,       //   Input (Data,Var,Abs)
+//
+//    0x09, 0x01,       //   Usage (Vendor Usage 0x01)
+//    0x75, 0x08,       //   Report Size (8)
+//    0x96, 0x40,       //   Report Count (64)
+//    0x91, 0x00,       //   Output (Data,Var,Abs)
+//    0xC0,             // End Collection
+//};
+
 
 // Eddie 參考 HID_ReportDesc_fido
 // https://github.com/LedgerHQ/nanos-secure-sdk/blob/master/lib_stusb_samples/Class/HID%2BFIDO/usbd_hid_impl.c
@@ -39,28 +61,6 @@ enum {
 //    0x75, 0x08,       //   Report Size (8)
 //    0x95, 0x40,       //   Report Count (64)
 //    0x91, 0x08,       //   Output (Data,Var,Abs)
-//    0xC0,             // End Collection
-//};
-
-// FIDO2 (Ming)
-//const uint8_t kFido2HidReportDescriptor[] = {
-//    0x06, 0xD0, 0xF1, // Usage Page (Reserved 0xF1D0)
-//    0x09, 0x01,       // Usage (0x01)
-//    0xA1, 0x01,       // Collection (Application)
-//
-//    //0x85,0x01,      // REPORT_ID (1) For FIDO, NO Report Id
-//    0x15, 0x00,       //   Logical Minimum (0)
-//    0x26, 0xFF, 0x00, //   Logical Maximum (255)
-//
-//    0x09, 0x01,       //   Usage (Vendor Usage 0x01)
-//    0x75, 0x08,       //   Report Size (8)
-//    0x96, 0x40,       //   Report Count
-//    0x81, 0x00,       //   Input (Data,Var,Abs)
-//
-//    0x09, 0x01,       //   Usage (Vendor Usage 0x01)
-//    0x75, 0x08,       //   Report Size (8)
-//    0x96, 0x40,       //   Report Count (64)
-//    0x91, 0x00,       //   Output (Data,Var,Abs)
 //    0xC0,             // End Collection
 //};
 

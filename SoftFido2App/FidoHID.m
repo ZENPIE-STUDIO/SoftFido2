@@ -37,7 +37,7 @@ static FidoHID* gU2fHid = nil;
         _runThread = nil;
     } else {
         self = nil;
-        _ctx = nil;
+        //_ctx = NULL;
         NSLog(@"softu2f_init failed!");
     }
     gU2fHid = self;

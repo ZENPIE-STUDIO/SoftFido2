@@ -16,13 +16,13 @@
 
 namespace BufMemoryUtils {
 
-inline kern_return_t createWithBytes(const void* bytes, size_t length, IOMemoryDescriptor** memory) {
+inline kern_return_t createWithBytes(const void* bytes, size_t length, uint64_t options, IOMemoryDescriptor** memory) {
     if (!bytes || !memory) {
         return kIOReturnBadArgument;
     }
 
     IOBufferMemoryDescriptor* m = nullptr;
-    auto kr = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionOut, length, 0, &m);
+    auto kr = IOBufferMemoryDescriptor::Create(options, length, 0, &m);
     if (kr == kIOReturnSuccess) {
         uint64_t address;
         uint64_t len;
@@ -42,27 +42,16 @@ error:
     }
     return kr;
 }
-    
-kern_return_t createIOMemoryDescriptor(IOUserClientMethodArguments* arguments, IOMemoryDescriptor** memory) {
-    if (!memory) {
-        return kIOReturnBadArgument;
-    }
-    *memory = nullptr;
-
-    if (arguments->structureInput) {
-        auto kr = createWithBytes(arguments->structureInput->getBytesNoCopy(),
-                                                               arguments->structureInput->getLength(),
-                                                               memory);
-        if (kr != kIOReturnSuccess) {
-            return kr;
+    // ----------
+    kern_return_t createMemoryDescriptorFromData(OSData* data, uint64_t options, IOMemoryDescriptor** memory) {
+        if (!memory) {
+            return kIOReturnBadArgument;
         }
-    } else if (arguments->structureInputDescriptor) {
-        *memory = arguments->structureInputDescriptor;
-        (*memory)->retain();
+        return createWithBytes(data->getBytesNoCopy(),
+                               data->getLength(),
+                               options,
+                               memory);
     }
-    return kIOReturnSuccess;
-}
-
 }
 
 #endif /* BufMemoryUtils_h */

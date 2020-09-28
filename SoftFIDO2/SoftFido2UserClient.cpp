@@ -108,19 +108,23 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
  DriverKit 沒有
  IOReturn SoftU2FUserClient::clientClose(void) {}
  */
-// 結果列印不出東西 textBuffer = <private>
-//kern_return_t IMPL(SoftFido2UserClient, dump) {
-//    uint8_t* byteArray = reinterpret_cast<uint8_t*>(address);
-//    char textBuffer[512], hexBuf[6];
-//    strlcpy(textBuffer, "DATA: ", 256);
-//    for (int i = 0; i < length; i++) {
-//        snprintf(hexBuf, 6, "%02x ", byteArray[i]);
-//        strlcat(textBuffer, hexBuf, 256);
-//    }
-//    strlcat(textBuffer, "\n", 256);
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "textBuffer = %s", textBuffer);
-//    return kIOReturnSuccess;
-//}
+// textBuffer 列印不出東西, 會看到 <private>
+kern_return_t IMPL(SoftFido2UserClient, dump) {
+    uint8_t* byteArray = reinterpret_cast<uint8_t*>(address);
+    //char textBuffer[512], hexBuf[6];
+    //strlcpy(textBuffer, "DATA: ", 256);
+    // 因為是 64/8，所以不特地處理其他長度
+    for (int i = 0; i < length; i+=8) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "%02x %02x %02x %02x %02x %02x %02x %02x",
+               byteArray[i], byteArray[i+1], byteArray[i+2], byteArray[i+3],
+               byteArray[i+4], byteArray[i+5], byteArray[i+6], byteArray[i+7]);
+        //snprintf(hexBuf, 6, "%02x ", byteArray[i]);
+        //strlcat(textBuffer, hexBuf, 256);
+    }
+    //strlcat(textBuffer, "\n", 256);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "textBuffer = %s", textBuffer);
+    return kIOReturnSuccess;
+}
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
@@ -215,6 +219,79 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     //sendAsyncResult64(*_notifyRef, kIOReturnSuccess, args, sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t));
 }
 
+/*
+ CopyClientMemoryForType(\
+     uint64_t type,\
+     uint64_t * options,\
+     IOMemoryDescriptor ** memory,\
+     OSDispatchMethod supermethod = NULL);\
+ */
+kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
+    kern_return_t ret;
+    if (type == 0) {
+        IOBufferMemoryDescriptor* buffer = nullptr;
+        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
+        if (ret != kIOReturnSuccess) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
+        } else {
+            *memory = buffer; // returned with refcount 1
+        }
+    } else {
+        ret = super::CopyClientMemoryForType(type, options, memory);
+    }
+    return ret;
+}
+
+#pragma mark - Send
+
+//SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments
+kern_return_t sSendFrame(SoftFido2UserClient* target, IOUserClientMethodArguments *arguments) {
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
+    kern_return_t ret = kIOReturnBadArgument;
+
+    IOMemoryDescriptor* report = nullptr;
+    if (arguments->structureInput != nullptr) {
+        BufMemoryUtils::createMemoryDescriptorFromData(arguments->structureInput,
+                                                       kIOMemoryDirectionIn,
+                                                       &report);
+    } else if (arguments->structureInputDescriptor) {
+        report = arguments->structureInputDescriptor;
+        report->retain();
+    }
+
+    if (report != nullptr) {
+        ret = target->sendReport(report);
+        OSSafeReleaseNULL(report);
+    }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "  sendReport ret = %d", ret);
+    return ret;
+}
+
+//virtual kern_return_t sendReport(IOMemoryDescriptor* report);
+kern_return_t IMPL(SoftFido2UserClient, sendReport) {
+    uint64_t reportLength;
+    auto ret = report->GetLength(&reportLength);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport > get report length failed");
+        return ret;
+    }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport Length = %llu", reportLength);
+    // -------------------
+    uint64_t address = 0;
+    uint64_t length = 0;
+    report->Map(0, 0, 0, 0, &address, &length);
+    dump(address, length);
+    // -------------------
+    ret = ivars->fido2Device->handleReport(mach_absolute_time(), report, static_cast<uint32_t>(reportLength), kIOHIDReportTypeInput, 0);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport > fido2Device->handleReport failed");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport > fido2Device->handleReport ✅");
+    }
+    return ret;
+}
+#pragma mark - ExternalMethod
 /* IOUserClientMethodDispatch
  IOUserClientMethodFunction function;
  uint32_t                   checkCompletionExists;
@@ -227,28 +304,6 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
 //    {(IOUserClientMethodFunction)&SoftFido2UserClient::sSendFrame, 0, 0, sizeof(U2FHID_FRAME), 0, 0},
 //    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, sizeof(U2FHID_FRAME)},
 //};
-//SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments
-kern_return_t sSendFrame(SoftFido2UserClient* target, IOUserClientMethodArguments *arguments) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
-    size_t frameLength = 0;
-    U2FHID_FRAME* frame = nullptr;
-
-    if (arguments->structureInput != nullptr) {
-        OSData* input = arguments->structureInput;
-        frameLength = input->getLength();
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame input length = %lu", frameLength);
-        frame = (U2FHID_FRAME*) input->getBytesNoCopy();
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame arguments->structureInput is null");
-    }
-    // ---- Debug Stop ----
-    if (frameLength == HID_RPT_SIZE) {
-        return target->sendFrame(frame, frameLength);
-    }
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "  SendFrame kIOReturnBadArgument");
-    return kIOReturnBadArgument;
-}
-
 
 // 心得:
 //      - ExternalMethod的 arguments->structureInput 有值，但透過 super::ExternalMethod 傳入 static sSendFrame就變null
@@ -316,55 +371,6 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     
     return kIOReturnBadArgument;
 }
-
-
-//virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
-kern_return_t IMPL(SoftFido2UserClient, sendFrame) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame refCount = %lu", frameSize);
-    // 把資料做成 report
-    IOMemoryDescriptor* report = nullptr;
-    auto ret = BufMemoryUtils::createWithBytes(frame, frameSize, &report);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > create report failed");
-        return ret;
-    }
-    uint64_t reportLength;
-    ret = report->GetLength(&reportLength);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > get report length failed");
-        return ret;
-    }
-    ret = ivars->fido2Device->handleReport(mach_absolute_time(), report, static_cast<uint32_t>(reportLength), kIOHIDReportTypeInput, 0);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendFrame > fido2Device->handleReport failed");
-    }
-    return ret;
-}
-
-/*
- CopyClientMemoryForType(\
-     uint64_t type,\
-     uint64_t * options,\
-     IOMemoryDescriptor ** memory,\
-     OSDispatchMethod supermethod = NULL);\
- */
-kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
-    kern_return_t ret;
-    if (type == 0) {
-        IOBufferMemoryDescriptor* buffer = nullptr;
-        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
-        if (ret != kIOReturnSuccess) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
-        } else {
-            *memory = buffer; // returned with refcount 1
-        }
-    } else {
-        ret = super::CopyClientMemoryForType(type, options, memory);
-    }
-    return ret;
-}
-
 
 #pragma mark - Debug
 

@@ -29,7 +29,7 @@ public:
                                          OSObject* target,
                                          void* reference) override;
     
-    
+    // (好像) IOConnectMapMemory 會觸發 CopyClientMemoryForType
     virtual kern_return_t CopyClientMemoryForType(uint64_t type,
                                                   uint64_t * options,
                                                   IOMemoryDescriptor ** memory) override;
@@ -39,12 +39,13 @@ public:
     virtual kern_return_t frameReceived(IOMemoryDescriptor *report, OSAction* action);
     
     
-    //virtual kern_return_t dump(uint64_t address, uint64_t length);
+    virtual kern_return_t dump(uint64_t address, uint64_t length);
     
 protected:
     //kern_return_t (*IOUserClientMethodFunction)(OSObject * target, void * reference, IOUserClientMethodArguments * arguments);
     //static kern_return_t sSendFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
-    virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
+    //virtual kern_return_t sendFrame(U2FHID_FRAME *frame, size_t frameSize);
+    virtual kern_return_t sendReport(IOMemoryDescriptor* report);
     
     //static kern_return_t sNotifyFrame(SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments);
     //virtual kern_return_t notifyFrame(uint32_t refCount);

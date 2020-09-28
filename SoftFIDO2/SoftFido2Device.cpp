@@ -45,15 +45,16 @@ void SoftFido2Device::free() {
 }
 
 #pragma mark - IOHIDDevice
-kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
-                                            IOMemoryDescriptor * report,
-                                            uint32_t reportLength,
-                                            IOHIDReportType reportType,
-                                            IOOptionBits options) {
-    kern_return_t ret = kIOReturnSuccess;
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleReport");
-    return ret;
-}
+//kern_return_t SoftFido2Device::handleReport(uint64_t timestamp,
+//                                            IOMemoryDescriptor * report,
+//                                            uint32_t reportLength,
+//                                            IOHIDReportType reportType,
+//                                            IOOptionBits options) {
+//    //kern_return_t ret = kIOReturnSuccess;
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleReport");
+//    return super::handleReport(timestamp, report, reportLength, reportType, options);
+//    //return ret;
+//}
 
 //kern_return_t SoftFido2Device::getReport(IOMemoryDescriptor * report,
 //                                        IOHIDReportType reportType,
@@ -88,6 +89,7 @@ void tryIODMACommand(SoftFido2Device* device, IOMemoryDescriptor* report) {
             if (ret == kIOReturnSuccess) {
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "  GetPreparation offset = %llu", offset);
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "  GetPreparation length = %llu", length);
+                //OSSafeReleaseNULL(testMemDesc);
             } else {
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand GetPreparation failed = %d", ret);
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
@@ -101,6 +103,7 @@ void tryIODMACommand(SoftFido2Device* device, IOMemoryDescriptor* report) {
             } else {
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand CompleteDMA failed = %d", ret);
             }
+            OSSafeReleaseNULL(dmaCmd);
         } else {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA failed = %d", ret);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
@@ -150,6 +153,7 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         //os_log(OS_LOG_DEFAULT, LOG_PREFIX "length = %llu", length);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", map->GetAddress());
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "length = %llu", map->GetLength());
+        OSSafeReleaseNULL(map);
     } else {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
