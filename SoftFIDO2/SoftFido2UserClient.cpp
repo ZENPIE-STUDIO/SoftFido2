@@ -139,70 +139,59 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
-//    if (ivars->notifyFrameMemoryDesc != nullptr) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc Release");
-//        OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
-//    }
-    
-    // <<< PrepareForDMA >>>
+    uint64_t outAddress = 0;
+    uint64_t outLength = 0;
+    ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
+    // <<< IODMACommand >>>
     uint64_t flags = 0;
     uint64_t dmaLength = 0;
     uint32_t dmaSegmentCount = 1;
     IOAddressSegment segments[32];
-    // 可以得到 1個 block 64 bytes
-    ret = report->PrepareForDMA(0, ivars->fido2Device, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
-        //return ret;
-    } else {
-        // flags = 2 (kIOMemoryDirectionOut)
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
-        if (dmaSegmentCount > 0) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.address = %llu", segments[0].address);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.length = %llu", segments[0].length);
-            // 注意：直接存取 segments[0].address，會導致Driver停止
-            // output Buffer Descriptor 所 mapping 的位置，可以寫入資料
-            uint64_t outAddress = 0;
-            uint64_t outLength = 0;
-            ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
-            if (ret == kIOReturnSuccess) {
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map address = %llu", outAddress);
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map length = %llu", outLength);
-                // (賀!) 使用外部傳入的 output buffer，可以成功讓呼叫者得到資料
-                uint8_t testByteArray[64] = {1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8,
-                    1,2,3,4,5,6,7,8
-                };
-                memcpy((void*) outAddress, (void*) testByteArray, 64);
-                ivars->notifyArgs[0] = outAddress;
-            } else {
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map failed = %d", ret);
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map system err = %x", err_get_system(ret));
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map    sub err = %x", err_get_sub(ret));
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputDescriptor Map   code err = %x", err_get_code(ret));
+    IODMACommandSpecification spec;
+    spec.maxAddressBits = 64;
+    IODMACommand* dmaCmd = nullptr;
+    ret = IODMACommand::Create(ivars->fido2Device, 0, &spec, &dmaCmd);
+    if (dmaCmd != nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
+        ret = dmaCmd->PrepareForDMA(0, report, 0, 0, &flags, &dmaSegmentCount, segments);
+        if (ret == kIOReturnSuccess) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA flags = %llu", flags);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA Length = %llu", dmaLength);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+            if (dmaSegmentCount > 0) {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.address = %llu", segments[0].address);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.length = %llu", segments[0].length);
             }
+            uint64_t offset;
+            uint64_t length;
+            IOMemoryDescriptor* out = nullptr;
+            ret = dmaCmd->GetPreparation(&offset, &length, &out);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation = %d", ret);
+            if (out != nullptr) {
+                IOMemoryMap* outMemMap = nullptr;
+                out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
+                if (outMemMap != nullptr) {
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
+                    
+                    memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
+                    ivars->notifyArgs[0] = outAddress;
+                    OSSafeReleaseNULL(outMemMap);
+                }
+            }
+            ret = dmaCmd->CompleteDMA(0);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA = %d", ret);
         }
+        OSSafeReleaseNULL(dmaCmd);
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
     }
-    
-    // [失敗] report map到 output buffer 的address
-//    IOMemoryMap* map = nullptr;
-//    ret = report->CreateMapping(kIOMemoryMapFixedAddress, outAddress, outLength, length, 0, &map);
-//    if (ret == kIOReturnSuccess) {
-//        ivars->notifyArgs[0] = map->GetAddress();
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping address = %llu", map->GetAddress());
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping length = %llu", map->GetLength());
-//    } else {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping failed = %d", ret);
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping system err = %x", err_get_system(ret));
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping    sub err = %x", err_get_sub(ret));
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->CreateMapping   code err = %x", err_get_code(ret));
+//    if (ivars->notifyFrameMemoryDesc != nullptr) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc Release");
+//        OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
 //    }
     //----------------------------
     //IOUserClientAsyncArgumentsArray args;
@@ -526,3 +515,28 @@ void SoftFido2UserClient::tryIODMACommand() {
     }
 }
 */
+
+/* Get Physical Address Only...
+void SoftFido2UserClient::tryPrepareForDMA {
+    // <<< PrepareForDMA >>>
+    uint64_t flags = 0;
+    uint64_t dmaLength = 0;
+    uint32_t dmaSegmentCount = 1;
+    IOAddressSegment segments[32];
+    // 可以得到 1個 block 64 bytes
+    ret = report->PrepareForDMA(0, ivars->fido2Device, 0, 0, &flags, &dmaLength, &dmaSegmentCount, segments);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Failed!");
+        //return ret;
+    } else {
+        // flags = 2 (kIOMemoryDirectionOut)
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA flags = %llu", flags);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA Length = %llu", dmaLength);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+        if (dmaSegmentCount > 0) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.address = %llu", segments[0].address);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->PrepareForDMA segments.length = %llu", segments[0].length);
+            // 注意：直接存取 segments[0].address，會導致Driver停止
+        }
+    }
+}*/

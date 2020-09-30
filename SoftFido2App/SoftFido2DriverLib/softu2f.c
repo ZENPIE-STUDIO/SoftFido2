@@ -766,31 +766,27 @@ void softu2f_async_callback(void *refcon, IOReturn result, uint64_t* args, uint3
   softu2f_ctx *ctx = (softu2f_ctx *)refcon;
   U2FHID_FRAME* frame = NULL;
     
-    // 利用App端準備好的OutputBuffer，就可以成功拿到裡面(目前是我亂放)的資料
-    frame = &(ctx->outputBufferArray[0]);
-    softu2f_debug_frame(ctx, frame, true);
-
     // 傳過來的 args 位置，拿到的值都怪怪的
 //    if (args != NULL) {
 //        frame = (U2FHID_FRAME*) args;
 //        softu2f_debug_frame(ctx, frame, true);
 //    }
 
-    /*
-  U2FHID_FRAME *frame;
-  if (numArgs * sizeof(io_user_reference_t) != sizeof(U2FHID_FRAME)) {
-      softu2f_log(ctx, "Unexpected argument count in softu2f_async_callback.\n");
-      goto stop;
-  }
+//  if (numArgs * sizeof(uint64_t) != sizeof(U2FHID_FRAME)) {
+//      softu2f_log(ctx, "Unexpected argument count in softu2f_async_callback.\n");
+//      goto stop;
+//  }
 
-  frame = (U2FHID_FRAME*) args;
+    // 利用App端準備好的OutputBuffer，就可以成功拿到裡面的資料
+    frame = &(ctx->outputBufferArray[0]);
+  //frame = (U2FHID_FRAME*) args;
   softu2f_debug_frame(ctx, frame, true);
   pthread_mutex_lock(&ctx->mutex);
   // Read frame into a HID message.
   softu2f_hid_frame_read(ctx, frame);
   // Handle any completed messages.
   softu2f_hid_handle_messages(ctx);
-  pthread_mutex_unlock(&ctx->mutex);*/
+  pthread_mutex_unlock(&ctx->mutex);
   return;
 
 stop:
