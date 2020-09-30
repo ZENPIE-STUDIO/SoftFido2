@@ -40,7 +40,7 @@
     [self.view addSubview:_btnActivate];
     //
     fPosY -= (fButtonHeight + fMargin);
-    _btnDeactivate = [NSButton buttonWithTitle:@"Deactivate" target:self action:@selector(deactivate)];
+    _btnDeactivate = [NSButton buttonWithTitle:@"Send Error" target:self action:@selector(deactivate)];
     _btnDeactivate.frame = NSMakeRect(fMargin, fPosY, fButtonWidth, fButtonHeight);
     [self.view addSubview:_btnDeactivate];
     //
@@ -76,9 +76,19 @@
 
 - (void) deactivate {
     NSLog(@"deactivate");
-    OSSystemExtensionRequest* request = [OSSystemExtensionRequest deactivationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
-    request.delegate = self;
-    [[OSSystemExtensionManager sharedManager] submitRequest:request];
+//    OSSystemExtensionRequest* request = [OSSystemExtensionRequest deactivationRequestForExtension:@"com.gotrustid.SoftFIDO2" queue:dispatch_get_main_queue()];
+//    request.delegate = self;
+//    [[OSSystemExtensionManager sharedManager] submitRequest:request];
+    if (_fidoHid) {
+        static int i = 1;
+        //[_fidoHid sendFido2Error:0x06/*CTAPHID_ERR_CHANNEL_BUSY*/ CID:0xffffffff];
+        [_fidoHid sendFido2Error:0x06/*CTAPHID_ERR_CHANNEL_BUSY*/ CID:i];
+        i++;
+//        for (int i = 1; i < 30; i++) {
+//            [_fidoHid sendFido2Error:0x7F/*CTAPHID_ERR_CHANNEL_BUSY*/ CID:i];
+//            [NSThread sleepForTimeInterval:0.2];
+//        }
+    }
 }
 
 - (void) trySomething {
