@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import <SystemExtensions/SystemExtensions.h>
 //#import "SoftFido2Lib.h"
-#import "FidoHID.h"
+#import "U2FHID.h"
 
 @interface ViewController() <OSSystemExtensionRequestDelegate>
 @property (nonatomic) NSTextView* textView;
@@ -17,7 +17,7 @@
 @property (nonatomic) NSButton* btnDeactivate;
 @property (nonatomic) NSButton* btnTry;
 
-@property (nonatomic) FidoHID* fidoHid;
+@property (nonatomic) U2FHID* fidoHid;
 @end
 
 @implementation ViewController
@@ -94,7 +94,7 @@
 - (void) trySomething {
     NSLog(@"trySomething");
     if (_fidoHid == nil) {
-        _fidoHid = [FidoHID new];
+        _fidoHid = [U2FHID new];
     }
     
     [_fidoHid run];

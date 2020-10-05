@@ -16,9 +16,9 @@
 		2780EBCA24FF7733009332AC /* SoftFido2UserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBC924FF7733009332AC /* SoftFido2UserClient.cpp */; };
 		2780EBCC24FF774C009332AC /* SoftFido2UserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBCB24FF7741009332AC /* SoftFido2UserClient.iig */; };
 		27810CDB251DE7D20063BD50 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 277C580825076F1A00D156BF /* USBDriverKit.framework */; };
+		278F6899252B1FFC00C82EE4 /* U2FHID.m in Sources */ = {isa = PBXBuildFile; fileRef = 278F6897252B1FFC00C82EE4 /* U2FHID.m */; };
 		27AA6845250F402D00FDB44A /* u2f_hid.h in Headers */ = {isa = PBXBuildFile; fileRef = 27AA6844250F402D00FDB44A /* u2f_hid.h */; };
 		27AA6851250F57DD00FDB44A /* softu2f.c in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684E250F57DD00FDB44A /* softu2f.c */; };
-		27AA6852250F57DD00FDB44A /* FidoHID.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AA684F250F57DD00FDB44A /* FidoHID.m */; };
 		27AA6853250F57DD00FDB44A /* SoftU2FContants.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AA6850250F57DD00FDB44A /* SoftU2FContants.m */; };
 		27CA55F3251D9D5B00B74358 /* com.gotrustid.SoftFIDO2.dext in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 27038DAC24FE4B8D002F7F77 /* com.gotrustid.SoftFIDO2.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		27CBC27A2500907500400E4D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CBC2792500907500400E4D /* AppDelegate.m */; };
@@ -67,15 +67,15 @@
 		2780EBC924FF7733009332AC /* SoftFido2UserClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SoftFido2UserClient.cpp; sourceTree = "<group>"; };
 		2780EBCB24FF7741009332AC /* SoftFido2UserClient.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SoftFido2UserClient.iig; sourceTree = "<group>"; };
 		2780EBCD24FF7FED009332AC /* UserKernelShared.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserKernelShared.h; sourceTree = "<group>"; };
+		278F6897252B1FFC00C82EE4 /* U2FHID.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = U2FHID.m; sourceTree = "<group>"; };
+		278F6898252B1FFC00C82EE4 /* U2FHID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = U2FHID.h; sourceTree = "<group>"; };
 		279581352500FE3C00F8CB87 /* SoftFido2App.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = SoftFido2App.entitlements; sourceTree = "<group>"; };
 		27AA6844250F402D00FDB44A /* u2f_hid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = u2f_hid.h; sourceTree = "<group>"; };
 		27AA6847250F57DD00FDB44A /* SoftU2FContants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoftU2FContants.h; sourceTree = "<group>"; };
-		27AA6848250F57DD00FDB44A /* FidoHID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FidoHID.h; sourceTree = "<group>"; };
 		27AA684A250F57DD00FDB44A /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
 		27AA684B250F57DD00FDB44A /* u2f_hid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = u2f_hid.h; sourceTree = "<group>"; };
 		27AA684D250F57DD00FDB44A /* softu2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softu2f.h; sourceTree = "<group>"; };
 		27AA684E250F57DD00FDB44A /* softu2f.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softu2f.c; sourceTree = "<group>"; };
-		27AA684F250F57DD00FDB44A /* FidoHID.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FidoHID.m; sourceTree = "<group>"; };
 		27AA6850250F57DD00FDB44A /* SoftU2FContants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoftU2FContants.m; sourceTree = "<group>"; };
 		27CBC2762500907500400E4D /* SoftFido2App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SoftFido2App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		27CBC2782500907500400E4D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -173,8 +173,8 @@
 				27AA6849250F57DD00FDB44A /* SoftFido2DriverLib */,
 				27AA6847250F57DD00FDB44A /* SoftU2FContants.h */,
 				27AA6850250F57DD00FDB44A /* SoftU2FContants.m */,
-				27AA6848250F57DD00FDB44A /* FidoHID.h */,
-				27AA684F250F57DD00FDB44A /* FidoHID.m */,
+				278F6898252B1FFC00C82EE4 /* U2FHID.h */,
+				278F6897252B1FFC00C82EE4 /* U2FHID.m */,
 				27CBC2782500907500400E4D /* AppDelegate.h */,
 				27CBC2792500907500400E4D /* AppDelegate.m */,
 				27CBC27B2500907500400E4D /* ViewController.h */,
@@ -316,7 +316,7 @@
 				27CBC2852500907600400E4D /* main.m in Sources */,
 				27CBC27A2500907500400E4D /* AppDelegate.m in Sources */,
 				27AA6853250F57DD00FDB44A /* SoftU2FContants.m in Sources */,
-				27AA6852250F57DD00FDB44A /* FidoHID.m in Sources */,
+				278F6899252B1FFC00C82EE4 /* U2FHID.m in Sources */,
 				27AA6851250F57DD00FDB44A /* softu2f.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

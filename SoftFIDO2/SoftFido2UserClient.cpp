@@ -318,7 +318,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
-        case kSoftFidoUserClientSendFrame: {
+        case kSoftU2FUserClientSendFrame: {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod SendFrame");
             //【嘗試方法】此處直接取用 arguments->structureInput，是可以取到內容。
             //  直接呼叫 sendFrame好像更方便
@@ -339,7 +339,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
 //            arguments->structureOutput = OSData::withBytes(&frame, sizeof(frame));
 //            return kIOReturnSuccess;
 //        }
-        case kSoftFidoUserClientNotifyFrame: {
+        case kSoftU2FUserClientNotifyFrame: {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod NotifyFrame (Async)");
             //dispatch = &sMethods[kSoftFidoUserClientNotifyFrame];
             //target = this;

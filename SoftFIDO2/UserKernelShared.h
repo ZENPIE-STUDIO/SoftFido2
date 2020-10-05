@@ -10,11 +10,12 @@
 #define UserKernelShared_h
 
 
-#define kSoftFidoDriverClassName "com_gotrustid_SoftFIDO2_SoftFido2Driver"
+#define kSoftU2FDriverClassName "SoftU2FDriver"     // KEXT
+#define kSoftFidoDriverClassName "com_gotrustid_SoftFIDO2_SoftFido2Driver"  // DriverKit
 // User client method dispatch selectors.
 enum {
-    kSoftFidoUserClientSendFrame,
-    kSoftFidoUserClientNotifyFrame,
+    kSoftU2FUserClientSendFrame,
+    kSoftU2FUserClientNotifyFrame,
     kNumberOfMethods // Must be last
 };
 

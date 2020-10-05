@@ -33,7 +33,7 @@ typedef enum softu2f_init_flags {
 } softu2f_init_flags;
 
 // Initialization
-softu2f_ctx *softu2f_init(softu2f_init_flags flags);
+softu2f_ctx *softu2f_init(softu2f_init_flags flags, boolean_t bDriverKit);
 
 // Deinitialization
 void softu2f_deinit(softu2f_ctx *ctx);

@@ -1,44 +1,53 @@
 //
-//  FidoHID.m
+//  U2FHID.m
 //  MacLogon
 //
 //  Created by Eddie Hua on 2019/10/4.
 //  Copyright © 2019 GoTrustID. All rights reserved.
 //
 
-#import "FidoHID.h"
+#import "U2FHID.h"
 #import "softu2f.h"
-#import "SoftU2FContants.h"
 
-static FidoHID* gU2fHid = nil;
+#ifdef DEBUG
+    #define LOGD(format,...)    {NSLog(format, ##__VA_ARGS__); }
+    #define LOGE(format,...)    {NSLog(format, ##__VA_ARGS__); }
+#endif
 
-@interface FidoHID()
+static U2FHID* gU2fHid = nil;
+
+@interface U2FHID()
 @property (nonatomic) softu2f_ctx* ctx;
 @property (nonatomic) NSMutableDictionary<NSNumber*, HIDMessageHandler>* handlers;
 
 @property (atomic) NSThread* runThread;
 @end
 
-@implementation FidoHID
+@implementation U2FHID
 
 - (void) dealloc {
     if (_ctx != NULL) {
-        NSLog(@"");
+        LOGD(@"");
         softu2f_deinit(_ctx);
         _ctx = NULL;
     }
 }
 
 - (instancetype) init {
-    _ctx = softu2f_init(SOFTU2F_DEBUG);
+    boolean_t useDriverKit = false;
+    if (@available(macOS 10.16, *)) {
+        useDriverKit = true;
+    }
+    _ctx = softu2f_init(SOFTU2F_DEBUG, useDriverKit);
     self = [super init];
     if (_ctx != NULL && self != nil) {
         _handlers = [NSMutableDictionary new];
         _runThread = nil;
+        LOGE(@"Mode: %@", (useDriverKit?@"DriverKit":@"KEXT"));
     } else {
         self = nil;
         //_ctx = NULL;
-        NSLog(@"softu2f_init failed!");
+        LOGE(@"softu2f_init failed!");
     }
     gU2fHid = self;
     return self;
@@ -48,7 +57,7 @@ static FidoHID* gU2fHid = nil;
     if (_ctx == NULL) {
         return;
     }
-    NSLog(@"type = %ld", (long)type);
+    //LOGD(@"type = %d", type);
     _handlers[@(type)] = handler;
     // register handler
     softu2f_hid_msg_handler_register(_ctx, type, my_message_handler);
@@ -58,7 +67,7 @@ bool my_message_handler(softu2f_ctx *ctx, softu2f_hid_message *req) {
     bool ret = false;
     if (req != NULL && gU2fHid != nil) {
         //req->cmd
-        NSLog(@"Received message (code %d) on channel %d.\n", req->cmd, req->cid);
+        LOGD(@"Received message (code %d) on channel %d.\n", req->cmd, req->cid);
 
         HIDMessageHandler handler = gU2fHid.handlers[@(req->cmd)];
         if (handler != nil) {
@@ -74,14 +83,14 @@ bool my_message_handler(softu2f_ctx *ctx, softu2f_hid_message *req) {
 
 - (bool) run {
     if (_runThread != nil) {
-        NSLog(@"SKIP, U2FHID thread running...");
+        LOGD(@"SKIP, U2FHID thread running...");
         return false;
     }
-    NSLog(@"Starting U2FHID thread");
-    FidoHID* __weak weakSelf = self;
+    LOGD(@"Starting U2FHID thread");
+    U2FHID* __weak weakSelf = self;
     _runThread = [[NSThread alloc] initWithBlock:^{
-        NSLog(@"U2FHID thread started");
-        FidoHID* u2fhid = weakSelf;
+        LOGD(@"U2FHID thread started");
+        U2FHID* u2fhid = weakSelf;
         if (u2fhid != nil) {
             if (u2fhid.ctx != nil) {
                 softu2f_run(u2fhid.ctx);
@@ -91,7 +100,7 @@ bool my_message_handler(softu2f_ctx *ctx, softu2f_hid_message *req) {
                 u2fhid.runThread = nil;
             }
         }
-        NSLog(@"U2FHID thread stopped");
+        LOGD(@"U2FHID thread stopped");
         gU2fHid = nil;
     }];
     // 2. 启动线程
@@ -102,7 +111,7 @@ bool my_message_handler(softu2f_ctx *ctx, softu2f_hid_message *req) {
 - (bool) stop {
     bool ok = false;
     if (_runThread) {
-        NSLog(@"Stopping U2FHID thread");
+        LOGD(@"Stopping U2FHID thread");
         softu2f_shutdown(_ctx);
         // 等一下
         for (int i = 0; i < 3 ; i++) {
@@ -141,7 +150,7 @@ bool my_message_handler(softu2f_ctx *ctx, softu2f_hid_message *req) {
 }
 //
 - (bool) sendKeepAliveStatus:(uint8_t) status CID:(uint32_t) cid {
-    //LOGD(@"status = %x, cid = %u", status, cid);
+    LOGD(@"status = %x, cid = %u", status, cid);
     softu2f_hid_message msg;
     msg.cid = cid;
     msg.bcnt = 1;

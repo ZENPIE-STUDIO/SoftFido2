@@ -1,5 +1,5 @@
 //
-//  FidoHID.h
+//  U2FHID.h
 //  MacLogon
 //
 //  Created by Eddie Hua on 2019/10/4.
@@ -14,7 +14,7 @@ typedef bool (^HIDMessageHandler)(softu2f_hid_message* _Nonnull msg);
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FidoHID : NSObject
+@interface U2FHID : NSObject
 
 //+ (instancetype) sharedInstance;
 
