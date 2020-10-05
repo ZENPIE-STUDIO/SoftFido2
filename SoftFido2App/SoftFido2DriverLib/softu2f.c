@@ -47,13 +47,13 @@ softu2f_ctx *softu2f_init(softu2f_init_flags flags, boolean_t bDriverKit) {
     // Find driver.
     service = getService(bDriverKit);
     if (!service) {
-        softu2f_log(ctx, "SoftU2F.kext not loaded.\n");
+        softu2f_log(ctx, "Cannot Get Matching Service.\n");
         goto fail;
     }
     // Open connection to user client.
     ret = IOServiceOpen(service, mach_task_self(), 0, &ctx->con);
     if (ret != KERN_SUCCESS) {
-        softu2f_log(ctx, "Error connecting to SoftU2F.kext: %d\n", ret);
+        softu2f_log(ctx, "Open Service Connection Failed: %d\n", ret);
         goto fail;
     }
     IOObjectRelease(service);
@@ -80,7 +80,7 @@ void softu2f_deinit(softu2f_ctx *ctx) {
     if (ctx->con) {
         ret = IOServiceClose(ctx->con);
         if (ret != KERN_SUCCESS)
-            softu2f_log(ctx, "Error closing connection to SoftU2F.kext: %d.\n", ret);
+            softu2f_log(ctx, "Close Service Connection Failed: %d.\n", ret);
     }
     pthread_mutex_destroy(&ctx->mutex);
     // Cleanup
@@ -383,29 +383,17 @@ void softu2f_hid_msg_handler_register(softu2f_ctx *ctx, uint8_t type, softu2f_hi
 // Find a message handler for a message.
 softu2f_hid_message_handler softu2f_hid_msg_handler(softu2f_ctx *ctx, softu2f_hid_message *msg) {
     switch (msg->cmd) {
-        case U2FHID_PING:
-            if (ctx->ping_handler)
-                return ctx->ping_handler;
+        case U2FHID_PING: if (ctx->ping_handler) return ctx->ping_handler;
             break;
-        case U2FHID_MSG:
-            if (ctx->msg_handler)
-                return ctx->msg_handler;
+        case U2FHID_MSG: if (ctx->msg_handler) return ctx->msg_handler;
             break;
-        case U2FHID_INIT:
-            if (ctx->init_handler)
-                return ctx->init_handler;
+        case U2FHID_INIT: if (ctx->init_handler) return ctx->init_handler;
             break;
-        case U2FHID_WINK:
-            if (ctx->wink_handler)
-                return ctx->wink_handler;
+        case U2FHID_WINK: if (ctx->wink_handler) return ctx->wink_handler;
             break;
-        case U2FHID_SYNC:
-            if (ctx->sync_handler)
-                return ctx->sync_handler;
+        case U2FHID_SYNC: if (ctx->sync_handler) return ctx->sync_handler;
             break;
-        case U2FHID_CBOR:
-            if (ctx->cbor_handler)
-                return ctx->cbor_handler;
+        case U2FHID_CBOR: if (ctx->cbor_handler) return ctx->cbor_handler;
             break;
     }
     return softu2f_hid_msg_handler_default(ctx, msg);
@@ -414,20 +402,13 @@ softu2f_hid_message_handler softu2f_hid_msg_handler(softu2f_ctx *ctx, softu2f_hi
 // Find the default message handler for a message.
 softu2f_hid_message_handler softu2f_hid_msg_handler_default(softu2f_ctx *ctx, softu2f_hid_message *msg) {
     switch (msg->cmd) {
-//        case U2FHID_PING:
-//            return softu2f_hid_msg_handle_ping;
-//        case U2FHID_MSG:
-//            return NULL;
-        case U2FHID_INIT:
-            return softu2f_hid_msg_handle_init;
-        case U2FHID_WINK:
-            return softu2f_hid_msg_handle_wink;
-//        case U2FHID_SYNC:
-//            return softu2f_hid_msg_handle_sync;
-        case U2FHID_CBOR:
-            return NULL;    // 外界處理的
-        default:
-            return NULL;
+//        case U2FHID_PING: return softu2f_hid_msg_handle_ping;
+//        case U2FHID_MSG: return NULL;
+        case U2FHID_INIT: return softu2f_hid_msg_handle_init;
+        case U2FHID_WINK: return softu2f_hid_msg_handle_wink;
+//        case U2FHID_SYNC: return softu2f_hid_msg_handle_sync;
+        case U2FHID_CBOR: return NULL;    // 外界處理的
+        default: return NULL;
     }
 }
 
@@ -732,10 +713,8 @@ void softu2f_async_timer_callback(CFRunLoopTimerRef timer, void* info) {
     
     io_service_t service = getService(isDriverKit);
     if (!service) {
-        //softu2f_log(ctx, "[EddieDebug] IOServiceGetMatchingService ❌\n");
         goto stop;
     }
-    //softu2f_log(ctx, "[EddieDebug] IOServiceGetMatchingService ✅\n");
 
     pthread_mutex_lock(&ctx->mutex);
     // Handle any completed messages (checking for timeouts).
