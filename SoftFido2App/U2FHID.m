@@ -9,10 +9,10 @@
 #import "U2FHID.h"
 #import "softu2f.h"
 
-#ifdef DEBUG
+//#ifdef DEBUG
     #define LOGD(format,...)    {NSLog(format, ##__VA_ARGS__); }
     #define LOGE(format,...)    {NSLog(format, ##__VA_ARGS__); }
-#endif
+//#endif
 
 static U2FHID* gU2fHid = nil;
 

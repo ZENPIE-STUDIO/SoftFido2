@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "27CBC2752500907500400E4D"
-               BuildableName = "SoftFido2App.app"
-               BlueprintName = "SoftFido2App"
+               BuildableName = "FidoDriverManager.app"
+               BlueprintName = "FidoDriverManager"
                ReferencedContainer = "container:SoftFIDO2.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -60,8 +60,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "27CBC2752500907500400E4D"
-            BuildableName = "SoftFido2App.app"
-            BlueprintName = "SoftFido2App"
+            BuildableName = "FidoDriverManager.app"
+            BlueprintName = "FidoDriverManager"
             ReferencedContainer = "container:SoftFIDO2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,8 +77,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "27CBC2752500907500400E4D"
-            BuildableName = "SoftFido2App.app"
-            BlueprintName = "SoftFido2App"
+            BuildableName = "FidoDriverManager.app"
+            BlueprintName = "FidoDriverManager"
             ReferencedContainer = "container:SoftFIDO2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
