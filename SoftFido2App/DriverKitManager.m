@@ -63,7 +63,7 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
 
 // 需要使用者 Approval 時，就會進來
 - (void)requestNeedsUserApproval:(OSSystemExtensionRequest *)request API_AVAILABLE(macos(10.15)) {
-    NSLog(@"requestNeedsUserApproval");
+    LOGD(@"requestNeedsUserApproval");
 }
 
 // 完成 Request 時…
@@ -79,6 +79,8 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
             LOGD(@"%ld", result);
             break;
     }
+    LOGD(@"exit");
+    exit(EXIT_SUCCESS);
 }
 
 // Request 失敗
@@ -101,6 +103,8 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
         case OSSystemExtensionErrorAuthorizationRequired: LOGD(@"AuthorizationRequired"); break;
         default: LOGD(@"Other Error : %@", error.localizedDescription); break;
     }
+    LOGD(@"exit");
+    exit(EXIT_SUCCESS);
     //NSLog(@"didFailWithError localizedFailureReason : %@", error.localizedFailureReason);
     //NSLog(@"didFailWithError localizedRecoverySuggestion : %@", error.localizedRecoverySuggestion);
 }
