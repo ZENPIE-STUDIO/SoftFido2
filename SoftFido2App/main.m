@@ -8,6 +8,9 @@
 
 #import <Cocoa/Cocoa.h>
 #import "DriverKitManager.h"
+#ifdef DEBUG
+    #import "U2FHID.h"
+#endif
 
 void closePreviousRunningInstance() {
     NSLog(@"Close Previous Running Instance");
@@ -38,7 +41,11 @@ void processArguments(NSArray<NSString *> *arguments) {
         }
     }];
     if (doActivate) {
-        [[DriverKitManager shared] activate];
+#ifdef DEBUG
+        U2FHID* u2fhid = [U2FHID new];
+        [u2fhid run];
+#endif
+        //[[DriverKitManager shared] activate];
     }
 }
 
