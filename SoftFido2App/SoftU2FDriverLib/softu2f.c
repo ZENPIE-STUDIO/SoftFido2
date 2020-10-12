@@ -56,6 +56,7 @@ softu2f_ctx *softu2f_init(softu2f_init_flags flags, boolean_t bDriverKit) {
         softu2f_log(ctx, "Error connecting to SoftU2F.kext: %d\n", ret);
         goto fail;
     }
+    isDriverKit = bDriverKit;
     IOObjectRelease(service);
     service = IO_OBJECT_NULL;
     return ctx;
