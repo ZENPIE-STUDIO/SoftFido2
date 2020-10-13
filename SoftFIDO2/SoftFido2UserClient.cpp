@@ -235,27 +235,16 @@ kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
 #pragma mark - Send
 
 //SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments
-kern_return_t sSendFrame(SoftFido2UserClient* target, IOUserClientMethodArguments *arguments) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
-    kern_return_t ret = kIOReturnBadArgument;
-
-    IOMemoryDescriptor* report = nullptr;
-    if (arguments->structureInput != nullptr) {
-        BufMemoryUtils::createMemoryDescriptorFromData(arguments->structureInput,
-                                                       kIOMemoryDirectionIn,
-                                                       &report);
-    } else if (arguments->structureInputDescriptor) {
-        report = arguments->structureInputDescriptor;
-        report->retain();
-    }
-
-    if (report != nullptr) {
-        ret = target->sendReport(report);
-        OSSafeReleaseNULL(report);
-    }
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "  sendReport ret = %d", ret);
-    return ret;
-}
+//kern_return_t sSendFrame(SoftFido2UserClient* target, IOMemoryDescriptor* report) {
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sSendFrame");
+//    kern_return_t ret = kIOReturnBadArgument;
+//    if (report != nullptr) {
+//        ret = target->sendReport(report);
+//        OSSafeReleaseNULL(report);
+//    }
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "  sendReport ret = %d", ret);
+//    return ret;
+//}
 
 //virtual kern_return_t sendReport(IOMemoryDescriptor* report);
 kern_return_t IMPL(SoftFido2UserClient, sendReport) {
@@ -266,12 +255,12 @@ kern_return_t IMPL(SoftFido2UserClient, sendReport) {
         return ret;
     }
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport Length = %llu", reportLength);
-    // -------------------
+    // ---------<DEBUG DUMP>----------
     uint64_t address = 0;
     uint64_t length = 0;
     report->Map(0, 0, 0, 0, &address, &length);
     dump(address, length);
-    // -------------------
+    // -------------------------------
     ret = ivars->fido2Device->handleReport(mach_absolute_time(), report, static_cast<uint32_t>(reportLength), kIOHIDReportTypeInput, 0);
     if (ret != kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport > fido2Device->handleReport failed");
@@ -320,9 +309,24 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     switch (selector) {
         case kSoftU2FUserClientSendFrame: {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod SendFrame");
-            //【嘗試方法】此處直接取用 arguments->structureInput，是可以取到內容。
-            //  直接呼叫 sendFrame好像更方便
-            return sSendFrame(this, arguments);
+            IOMemoryDescriptor* report = nullptr;
+            if (arguments->structureInput != nullptr) {
+                // ---------<DEBUG DUMP>----------
+                dump((uint64_t) arguments->structureInput->getBytesNoCopy(), arguments->structureInput->getLength());
+                // -------------------------------
+                BufMemoryUtils::createMemoryDescriptorFromData(arguments->structureInput,
+                                                               kIOMemoryDirectionIn,
+                                                               &report);
+            } else if (arguments->structureInputDescriptor) {
+                report = arguments->structureInputDescriptor;
+                report->retain();
+            }
+            kern_return_t ret = kIOReturnBadArgument;
+            if (report != nullptr) {
+                ret = sendReport(report);
+                OSSafeReleaseNULL(report);
+            }
+            return ret;
             //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。
             //  應該是在宣告時有指定 checkStructureInputSize
             // sSendFrame, 0, sizeof(U2FHID_FRAME), 0, 0
