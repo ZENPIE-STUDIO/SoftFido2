@@ -112,13 +112,14 @@ void tryIODMACommand(SoftFido2Device* device, IOMemoryDescriptor* report) {
         }
     }
 }
-
+// 收到資料會進來這裡!
 kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
                                          IOHIDReportType reportType,
                                          IOOptionBits options,
                                          uint32_t completionTimeout,
                                          OSAction* action) {
     kern_return_t ret = kIOReturnSuccess;
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "-------------------------------------------------");
     switch (reportType) {
         case kIOHIDReportTypeInput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Input)"); break;
         case kIOHIDReportTypeOutput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Output)"); break;
@@ -129,7 +130,7 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     // 心得：結果這裡options=0
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport IOOptionBits = %u", options);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
-    _IOMDPrivateState state;
+    /*_IOMDPrivateState state;
     ret = report->_CopyState(&state);
     if (ret == kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.length = %llu", state.length);
@@ -141,16 +142,9 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     } else {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "_CopyState failed = %d", ret);
     }
-    // 實驗：IOBufferMemoryDescriptor 建立時，無論用什麼參數 In/Out，都可 Map address = 4439891968
-    // (怪) 用 Map, CreateMapping 都失敗
-    //uint64_t address;
-    uint64_t length;
     IOMemoryMap* map = nullptr;
     ret = report->CreateMapping(kIOMemoryMapReadOnly, 0, 0, 0, 0, &map);
-    //ret = report->Map(0, 0, 0, 0, &address, &length);
     if (ret == kIOReturnSuccess) {
-        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", address);
-        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "length = %llu", length);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", map->GetAddress());
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "length = %llu", map->GetLength());
         OSSafeReleaseNULL(map);
@@ -159,7 +153,7 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "          sub err = %x", err_get_sub(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "         code err = %x", err_get_code(ret));
-    }
+    }*/
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
@@ -167,6 +161,7 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     }
     // Sleep for a bit to make the HID conformance tests happy.
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
+    uint64_t length;
     report->GetLength(&length);
     CompleteReport(action, kIOReturnSuccess, (uint32_t) length); // 沒有這個，LOG會有
     // SoftFido2Device:0x1000008a6 Action aborted 0 1

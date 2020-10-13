@@ -30,9 +30,9 @@ public:
                                          void* reference) override;
     
     // (好像) IOConnectMapMemory 會觸發 CopyClientMemoryForType
-    virtual kern_return_t CopyClientMemoryForType(uint64_t type,
-                                                  uint64_t * options,
-                                                  IOMemoryDescriptor ** memory) override;
+//    virtual kern_return_t CopyClientMemoryForType(uint64_t type,
+//                                                  uint64_t * options,
+//                                                  IOMemoryDescriptor ** memory) override;
 
     // SoftU2F 有 2 個 Public Function，在這裡照 iig 的格式做點小修改
     //virtual IOReturn clientClose(void) override;

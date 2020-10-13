@@ -137,7 +137,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     }
     // (結果)都是 64bytes
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
     uint64_t outAddress = 0;
     uint64_t outLength = 0;
@@ -189,23 +189,11 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
     }
-//    if (ivars->notifyFrameMemoryDesc != nullptr) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "notifyFrameMemoryDesc Release");
-//        OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
-//    }
     //----------------------------
-    //IOUserClientAsyncArgumentsArray args;
     uint32_t asyncDataCount = 1;
-    //AsyncCompletion(OSAction *action, IOReturn status, IOUserClientAsyncArgumentsArray, uint32_t asyncDataCount)
-    // source 內部會 check:   asyncDataCount 要小於 Array Size
-    // if (asyncDataCount > (sizeof(msg->content.__asyncData) / sizeof(msg->content.__asyncData[0]))) return;
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) ivars->notifyArgs, asyncDataCount);
     return kIOReturnSuccess;
-    // 舊的參考
-    //    numArgs = sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t) = 64/8
-    //io_user_reference_t *args = (io_user_reference_t *)reportMap->getAddress();
-    //sendAsyncResult64(*_notifyRef, kIOReturnSuccess, args, sizeof(U2FHID_FRAME) / sizeof(io_user_reference_t));
 }
 
 /*
@@ -215,22 +203,22 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
      IOMemoryDescriptor ** memory,\
      OSDispatchMethod supermethod = NULL);\
  */
-kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
-    kern_return_t ret;
-    if (type == 0) {
-        IOBufferMemoryDescriptor* buffer = nullptr;
-        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
-        if (ret != kIOReturnSuccess) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
-        } else {
-            *memory = buffer; // returned with refcount 1
-        }
-    } else {
-        ret = super::CopyClientMemoryForType(type, options, memory);
-    }
-    return ret;
-}
+//kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
+//    kern_return_t ret;
+//    if (type == 0) {
+//        IOBufferMemoryDescriptor* buffer = nullptr;
+//        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
+//        if (ret != kIOReturnSuccess) {
+//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
+//        } else {
+//            *memory = buffer; // returned with refcount 1
+//        }
+//    } else {
+//        ret = super::CopyClientMemoryForType(type, options, memory);
+//    }
+//    return ret;
+//}
 
 #pragma mark - Send
 
@@ -297,18 +285,17 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     // ExternalMethod target is null.
     // ExternalMethod dispatch is null.
     // ExternalMethod reference is null.
-    if (reference != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference ✅");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference = null");
-    }
-    
-    debugArguments(arguments);
+//    if (reference != nullptr) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference ✅");
+//    } else {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference = null");
+//    }
+    //debugArguments(arguments);
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
         case kSoftU2FUserClientSendFrame: {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod SendFrame");
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "<<<<<<< SendFrame >>>>>>>");
             IOMemoryDescriptor* report = nullptr;
             if (arguments->structureInput != nullptr) {
                 // ---------<DEBUG DUMP>----------
@@ -344,7 +331,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
 //            return kIOReturnSuccess;
 //        }
         case kSoftU2FUserClientNotifyFrame: {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod NotifyFrame (Async)");
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "<<<<<<< NotifyFrame(Async) >>>>>>>");
             //dispatch = &sMethods[kSoftFidoUserClientNotifyFrame];
             //target = this;
             ivars->notifyFrameAction = arguments->completion;
