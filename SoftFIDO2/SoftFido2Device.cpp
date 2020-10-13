@@ -141,33 +141,21 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         //          kIOMemoryTypeUIO
     } else {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "_CopyState failed = %d", ret);
-    }
-    IOMemoryMap* map = nullptr;
-    ret = report->CreateMapping(kIOMemoryMapReadOnly, 0, 0, 0, 0, &map);
-    if (ret == kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "address = %llu", map->GetAddress());
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "length = %llu", map->GetLength());
-        OSSafeReleaseNULL(map);
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->Map failed = %d", ret);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "       system err = %x", err_get_system(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "          sub err = %x", err_get_sub(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "         code err = %x", err_get_code(ret));
     }*/
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
         ret = userClient->frameReceived(report, action);
     }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - IOSleep 1ms");
+    IOSleep(1); // 1ms
     // Sleep for a bit to make the HID conformance tests happy.
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
     uint64_t length;
     report->GetLength(&length);
     CompleteReport(action, kIOReturnSuccess, (uint32_t) length); // 沒有這個，LOG會有
     // SoftFido2Device:0x1000008a6 Action aborted 0 1
     // SoftFido2Device:0x1000008a6 ProcessReport:0xe00002eb 1 0
-    IOSleep(1); // 1ms
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - return %d", ret);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
     return ret;
 }
 
