@@ -128,8 +128,8 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     }
     //tryIODMACommand(this, report);
     // 心得：結果這裡options=0
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport IOOptionBits = %u", options);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport completionTimeout = %u", completionTimeout);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOOptionBits = %u", options);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   completionTimeout = %u", completionTimeout);
     /*_IOMDPrivateState state;
     ret = report->_CopyState(&state);
     if (ret == kIOReturnSuccess) {
@@ -146,16 +146,17 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
         ret = userClient->frameReceived(report, action);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   frameReceived ret = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep 1ms");
+        IOSleep(1); // 1ms
     }
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - IOSleep 1ms");
-    IOSleep(1); // 1ms
     // Sleep for a bit to make the HID conformance tests happy.
     uint64_t length;
     report->GetLength(&length);
     CompleteReport(action, kIOReturnSuccess, (uint32_t) length); // 沒有這個，LOG會有
     // SoftFido2Device:0x1000008a6 Action aborted 0 1
     // SoftFido2Device:0x1000008a6 ProcessReport:0xe00002eb 1 0
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport - CompleteReport");
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     return ret;
 }
 

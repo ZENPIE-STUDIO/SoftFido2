@@ -32,7 +32,7 @@ struct SoftFido2UserClient_IVars {
     //
     uint64_t notifyArgs[8];
     OSAction* notifyFrameAction = nullptr;
-    IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;  // 目前停用：因為傳出給app，也沒得到假資料
+    //IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;  // 目前停用：因為傳出給app，也沒得到假資料
     IOMemoryDescriptor* outputDescriptor = nullptr;  // structureOutputDescriptor
 };
 
@@ -52,7 +52,7 @@ bool SoftFido2UserClient::init() {
 void SoftFido2UserClient::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
 
-    OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
+    //OSSafeReleaseNULL(ivars->notifyFrameMemoryDesc);
     OSSafeReleaseNULL(ivars->notifyFrameAction);
     OSSafeReleaseNULL(ivars->fido2Device);
     IOSafeDeleteNULL(ivars, SoftFido2UserClient_IVars, 1);
@@ -133,31 +133,29 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     uint64_t length = 0;
     kern_return_t ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength Failed!");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength Failed!");
         return ret;
     }
     // (結果)都是 64bytes
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
     // --------------------------------
-    IODispatchQueue* queue = NULL;
-    ivars->provider->getDispatchQueue(&queue);
-    if (queue != NULL) {
-        queue->DispatchAsync(^{
-            innerFrameReceived(report);
-        });
-    }
+    //IODispatchQueue* queue = NULL;
+    //ivars->provider->getDispatchQueue(&queue);
+    //if (queue != NULL) {
+        //queue->DispatchAsync(^{
+            return innerFrameReceived(report);
+        //});
+    //}
     // --------------------------------
     
-    return kIOReturnSuccess;
+    //return kIOReturnSuccess;
 }
 kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
-//void SoftFido2UserClient::innerFrameReceived() {
-    kern_return_t ret = kIOReturnSuccess;
     uint64_t outAddress = 0;
     uint64_t outLength = 0;
-    ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
+    kern_return_t ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
     // <<< IODMACommand >>>
     uint64_t flags = 0;
     uint64_t dmaLength = 0;
@@ -209,7 +207,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     uint32_t asyncDataCount = 1;
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) ivars->notifyArgs, asyncDataCount);
-    return kIOReturnSuccess;
+    return ret;
 }
 
 /*
@@ -282,11 +280,20 @@ kern_return_t IMPL(SoftFido2UserClient, sendReport) {
  uint32_t                   checkScalarOutputCount;
  uint32_t                   checkStructureOutputSize;
  */
-//const IOUserClientMethodDispatch sMethods[kNumberOfMethods] = {
-//    {(IOUserClientMethodFunction)&SoftFido2UserClient::sSendFrame, 0, 0, sizeof(U2FHID_FRAME), 0, 0},
-//    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, sizeof(U2FHID_FRAME)},
-//};
+/*
+const IOUserClientMethodDispatch sMethods[kNumberOfMethods] = {
+    {(IOUserClientMethodFunction)&SoftFido2UserClient::sSendFrame, 0, 0, sizeof(U2FHID_FRAME), 0, 0},
+    {(IOUserClientMethodFunction)&SoftFido2UserClient::sNotifyFrame, 0, 0, 0, 0, sizeof(U2FHID_FRAME)},
+};
 
+kern_return_t IMPL(SoftFido2UserClient, sSendFrame) {
+    return kIOReturnSuccess;
+}
+
+kern_return_t IMPL(SoftFido2UserClient, sNotifyFrame) {
+    return kIOReturnSuccess;
+}
+ */
 // 心得:
 //      - ExternalMethod的 arguments->structureInput 有值，但透過 super::ExternalMethod 傳入 static sSendFrame就變null
 //      - 而 reference 有值，只是不知道是什麼? 是宣告的 U2FHID_FRAME ?

@@ -19,7 +19,7 @@
 static const char* kDispatchQueueName = "SoftFidoQueue";
 
 struct com_gotrustid_SoftFIDO2_SoftFido2Driver_IVars {
-    IODispatchQueue* workQueue;
+    IODispatchQueue* workQueue; // SoftU2f 用IOWorkLoop *_workLoop，DriverKit 沒有
 };
 
 kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, getDispatchQueue) {
@@ -56,14 +56,14 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
         Stop(provider, SUPERDISPATCH);
         return ret;
     }
-    IODispatchQueue* workQueue = nullptr;
-    ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
-        Stop(provider, SUPERDISPATCH);
-        return ret;
-    }
-    ivars->workQueue = workQueue;
+//    IODispatchQueue* workQueue = nullptr;
+//    ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
+//    if (ret != kIOReturnSuccess) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
+//        Stop(provider, SUPERDISPATCH);
+//        return ret;
+//    }
+//    ivars->workQueue = workQueue;
     //SetDispatchQueue(kDispatchQueueName, workQueue);
     RegisterService();
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start OK");

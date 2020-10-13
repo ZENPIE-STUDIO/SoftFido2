@@ -15,13 +15,9 @@
 class IOUserClient;
 
 class com_gotrustid_SoftFIDO2_SoftFido2Driver: public IOService
-{
-    //IOWorkLoop *_workLoop = nullptr;    // 用 IODispatchQueue 取代
-    //   (START) workLoop->addEventSource(_commandGate)
-    //   (STOP) workLoop->removeEventSource(_commandGate);
-    
+{ 
 public:
-    virtual kern_return_t getDispatchQueue(IODispatchQueue** pQueue);
+    virtual kern_return_t getDispatchQueue(IODispatchQueue** pQueue) LOCAL;
     
     virtual bool init() override;
     virtual void free() override;
