@@ -33,9 +33,9 @@ static U2FHID* gU2fHid = nil;
 
 - (instancetype) init {
     boolean_t useDriverKit = false;
-    if (@available(macOS 10.16, *)) {
+//    if (@available(macOS 10.16, *)) {
         useDriverKit = true;
-    }
+//    }
     _ctx = softu2f_init(SOFTU2F_DEBUG, useDriverKit);
     self = [super init];
     if (_ctx != NULL && self != nil) {

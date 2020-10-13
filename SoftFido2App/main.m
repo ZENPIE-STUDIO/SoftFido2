@@ -41,7 +41,7 @@ void processArguments(NSArray<NSString *> *arguments) {
         }
     }];
     if (doActivate) {
-        if (1) {
+        if (0) {
             gU2fhid = [U2FHID new];
             [gU2fhid handleType:CTAPHID_CBOR Handler:^bool(softu2f_hid_message * _Nonnull msg) {
                 NSData *data = (__bridge NSData *) msg->data;
