@@ -22,6 +22,11 @@ struct com_gotrustid_SoftFIDO2_SoftFido2Driver_IVars {
     IODispatchQueue* workQueue;
 };
 
+kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, getDispatchQueue) {
+    *pQueue = ivars->workQueue;
+    return true;
+}
+
 bool com_gotrustid_SoftFIDO2_SoftFido2Driver::init() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "init");
     if (super::init()) {

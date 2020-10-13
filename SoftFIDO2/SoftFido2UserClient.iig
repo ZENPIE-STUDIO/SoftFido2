@@ -37,8 +37,7 @@ public:
     // SoftU2F 有 2 個 Public Function，在這裡照 iig 的格式做點小修改
     //virtual IOReturn clientClose(void) override;
     virtual kern_return_t frameReceived(IOMemoryDescriptor *report, OSAction* action);
-    
-    
+    virtual kern_return_t innerFrameReceived(IOMemoryDescriptor *report);
     virtual kern_return_t dump(uint64_t address, uint64_t length);
     
 protected:

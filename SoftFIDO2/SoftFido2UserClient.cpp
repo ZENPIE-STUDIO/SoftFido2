@@ -129,6 +129,7 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
     // <<< GetLength >>>
+    //
     uint64_t length = 0;
     kern_return_t ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
@@ -139,6 +140,21 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "report->GetLength = %llu", length);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
+    // --------------------------------
+    IODispatchQueue* queue = NULL;
+    ivars->provider->getDispatchQueue(&queue);
+    if (queue != NULL) {
+        queue->DispatchAsync(^{
+            innerFrameReceived(report);
+        });
+    }
+    // --------------------------------
+    
+    return kIOReturnSuccess;
+}
+kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
+//void SoftFido2UserClient::innerFrameReceived() {
+    kern_return_t ret = kIOReturnSuccess;
     uint64_t outAddress = 0;
     uint64_t outLength = 0;
     ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
@@ -244,10 +260,10 @@ kern_return_t IMPL(SoftFido2UserClient, sendReport) {
     }
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "sendReport Length = %llu", reportLength);
     // ---------<DEBUG DUMP>----------
-    uint64_t address = 0;
-    uint64_t length = 0;
-    report->Map(0, 0, 0, 0, &address, &length);
-    dump(address, length);
+//    uint64_t address = 0;
+//    uint64_t length = 0;
+//    report->Map(0, 0, 0, 0, &address, &length);
+//    dump(address, length);
     // -------------------------------
     ret = ivars->fido2Device->handleReport(mach_absolute_time(), report, static_cast<uint32_t>(reportLength), kIOHIDReportTypeInput, 0);
     if (ret != kIOReturnSuccess) {
@@ -279,7 +295,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                   const IOUserClientMethodDispatch* dispatch,
                                                   OSObject* target,
                                                   void* reference) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "------------------<ExternalMethod>------------------");
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "-------------<ExternalMethod>-------------");
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod selector = %llu", selector);
     
     // ExternalMethod target is null.
