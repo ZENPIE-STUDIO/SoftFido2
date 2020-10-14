@@ -181,6 +181,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     
                     memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
                     ivars->notifyArgs[0] = outAddress;
+                    dump(outAddress, outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
                 }
             }
