@@ -30,10 +30,12 @@ struct SoftFido2UserClient_IVars {
     SoftFido2Device* fido2Device;
     //IODispatchQueue* commandQueue = nullptr;
     //
-    uint64_t notifyArgs[8];
-    OSAction* notifyFrameAction = nullptr;
-    //IOBufferMemoryDescriptor* notifyFrameMemoryDesc = nullptr;  // 目前停用：因為傳出給app，也沒得到假資料
-    IOMemoryDescriptor* outputDescriptor = nullptr;  // structureOutputDescriptor
+    uint64_t        notifyArgs[8];
+    OSAction*       notifyFrameAction = nullptr;
+    //
+    IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
+    uint64_t                outputBufferFrameCount = 0;
+    uint64_t                outputFrameIdx = 0;
 };
 
 
@@ -140,13 +142,16 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         //});
     //}
     // --------------------------------
-    
     //return kIOReturnSuccess;
 }
+
 kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
+    const size_t kFrameSize = sizeof(U2FHID_FRAME);
+    uint32_t currentIdx = ivars->outputFrameIdx;
     uint64_t outAddress = 0;
-    uint64_t outLength = 0;
-    kern_return_t ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &outAddress, &outLength);
+    uint64_t bufferAddress = 0;
+    uint64_t bufferLength = 0;
+    kern_return_t ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &bufferAddress, &bufferLength);
     // <<< IODMACommand >>>
     uint64_t flags = 0;
     uint64_t dmaLength = 0;
@@ -179,10 +184,18 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
                     
+                    outAddress = bufferAddress + currentIdx * kFrameSize;
                     memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    ivars->notifyArgs[0] = outAddress;
+                    ivars->notifyArgs[0] = outAddress;  // User Client 端目前不會用這個address
                     dump(outAddress, outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
+                    //
+                    const uint32_t nextIdx = currentIdx + 1;
+                    if (nextIdx < ivars->outputBufferFrameCount) {
+                        ivars->outputFrameIdx = nextIdx;
+                    } else {
+                        ivars->outputFrameIdx = 0;
+                    }
                 }
             }
             ret = dmaCmd->CompleteDMA(0);
@@ -196,9 +209,8 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
     }
     //----------------------------
-    uint32_t asyncDataCount = 1;
-    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, count = %u", (uint64_t) ivars->notifyArgs, asyncDataCount);
+    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, currentIdx = %u", (uint64_t) ivars->notifyArgs, currentIdx);
     return ret;
 }
 
@@ -305,7 +317,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
 //    } else {
 //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference = null");
 //    }
-    //debugArguments(arguments);
+    debugArguments(arguments);
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
@@ -355,6 +367,9 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             if (arguments->structureOutputDescriptor != nullptr) {
                 ivars->outputDescriptor = arguments->structureOutputDescriptor;
                 ivars->outputDescriptor->retain();
+                //
+                ivars->outputBufferFrameCount = arguments->structureOutputMaximumSize / sizeof(U2FHID_FRAME);
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputBufferFrameCount = %llu", ivars->outputBufferFrameCount);
             }
             return kIOReturnSuccess;
             //return super::ExternalMethod(selector, arguments, dispatch, target, reference);   // 用這個會失敗!? 可能是 定義的 與 傳入的不符合

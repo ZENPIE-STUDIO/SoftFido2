@@ -674,28 +674,24 @@ void softu2f_inner_async_callback(softu2f_ctx *ctx, U2FHID_FRAME* frame) {
 }
 // (DriverKit)
 void softu2f_driverkit_async_callback(void *refcon, IOReturn result, uint64_t* args, uint32_t numArgs) {
-    U2FHID_FRAME* frame = NULL;
     softu2f_ctx *ctx = NULL;
     if (!refcon || result != kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, "Unexpected call to softu2f_driverkit_async_callback.\n");
         goto stop;
     }
     ctx = (softu2f_ctx *)refcon;
-    // 傳過來的 args 位置，拿到的值都怪怪的
-//    if (args != NULL) {
-//        frame = (U2FHID_FRAME*) args;
-//        softu2f_debug_frame(ctx, frame, true);
-//    }
+
     // 利用App端準備好的OutputBuffer，就可以成功拿到裡面的資料
-    frame = &(ctx->outputBufferArray[0]);
-    // 以下跟 原本的一樣
-    softu2f_inner_async_callback(ctx, frame);
+    U2FHID_FRAME frame;
+    memcpy(&frame, &(ctx->outputBufferArray[0]), sizeof(U2FHID_FRAME));
+    softu2f_inner_async_callback(ctx, &frame);
+    //frame = &(ctx->outputBufferArray[0]);
+    //softu2f_inner_async_callback(ctx, frame);
     return;
 
 stop:
     if (ctx)
         softu2f_log(ctx, "Shutting down softu2f async run loop because of error.\n");
-
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
 // Called by the kernel when setReport is called on our device.
