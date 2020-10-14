@@ -104,25 +104,16 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
     return Stop(provider, SUPERDISPATCH);
 }
 
-/*
- DriverKit 沒有
- IOReturn SoftU2FUserClient::clientClose(void) {}
- */
-// textBuffer 列印不出東西, 會看到 <private>
 kern_return_t IMPL(SoftFido2UserClient, dump) {
     uint8_t* byteArray = reinterpret_cast<uint8_t*>(address);
-    //char textBuffer[512], hexBuf[6];
-    //strlcpy(textBuffer, "DATA: ", 256);
-    // 因為是 64/8，所以不特地處理其他長度
-    for (int i = 0; i < length; i+=8) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "%02x %02x %02x %02x %02x %02x %02x %02x",
+    // 因為是 64/16，所以不特地處理其他長度
+    for (int i = 0; i < length; i+=16) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
                byteArray[i], byteArray[i+1], byteArray[i+2], byteArray[i+3],
-               byteArray[i+4], byteArray[i+5], byteArray[i+6], byteArray[i+7]);
-        //snprintf(hexBuf, 6, "%02x ", byteArray[i]);
-        //strlcat(textBuffer, hexBuf, 256);
+               byteArray[i+4], byteArray[i+5], byteArray[i+6], byteArray[i+7],
+               byteArray[i+8], byteArray[i+9], byteArray[i+10], byteArray[i+11],
+               byteArray[i+12], byteArray[i+13], byteArray[i+14], byteArray[i+15]);
     }
-    //strlcat(textBuffer, "\n", 256);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "textBuffer = %s", textBuffer);
     return kIOReturnSuccess;
 }
 
