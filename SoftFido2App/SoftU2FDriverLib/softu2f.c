@@ -664,8 +664,8 @@ void softu2f_debug_frame(softu2f_ctx *ctx, U2FHID_FRAME *frame, bool recv) {
 }
 // Kext, DriverKit 得到 U2FHID_FRAME之後，共用的部份
 void softu2f_inner_async_callback(softu2f_ctx *ctx, U2FHID_FRAME* frame) {
-    softu2f_debug_frame(ctx, frame, true);
     pthread_mutex_lock(&ctx->mutex);
+    softu2f_debug_frame(ctx, frame, true);
     // Read frame into a HID message.
     softu2f_hid_frame_read(ctx, frame);
     // Handle any completed messages.
@@ -677,7 +677,7 @@ void softu2f_driverkit_async_callback(void *refcon, IOReturn result, uint64_t* a
     U2FHID_FRAME* frame = NULL;
     softu2f_ctx *ctx = NULL;
     if (!refcon || result != kIOReturnSuccess) {
-        printf("Unexpected call to softu2f_driverkit_async_callback.\n");
+        os_log(OS_LOG_DEFAULT, "Unexpected call to softu2f_driverkit_async_callback.\n");
         goto stop;
     }
     ctx = (softu2f_ctx *)refcon;
@@ -686,7 +686,6 @@ void softu2f_driverkit_async_callback(void *refcon, IOReturn result, uint64_t* a
 //        frame = (U2FHID_FRAME*) args;
 //        softu2f_debug_frame(ctx, frame, true);
 //    }
-
     // 利用App端準備好的OutputBuffer，就可以成功拿到裡面的資料
     frame = &(ctx->outputBufferArray[0]);
     // 以下跟 原本的一樣
@@ -705,7 +704,7 @@ void softu2f_kext_async_callback(void *refcon, IOReturn result, io_user_referenc
     U2FHID_FRAME *frame;
 
     if (!refcon || result != kIOReturnSuccess) {
-        printf("Unexpected call to softu2f_kext_async_callback.\n");
+        os_log(OS_LOG_DEFAULT, "Unexpected call to softu2f_kext_async_callback.\n");
         goto stop;
     }
 
