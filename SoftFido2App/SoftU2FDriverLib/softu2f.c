@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include "UserKernelShared.h"
 
+#include <os/log.h>
+
 static boolean_t isDriverKit = false;
 
 io_service_t getService(boolean_t bDriverKit) {
@@ -619,14 +621,14 @@ void softu2f_hid_msg_free(softu2f_hid_message *msg) {
 }
 
 // Log a message if logging is enabled.
-void softu2f_log(softu2f_ctx *ctx, char *fmt, ...) {
-    if (ctx->debug) {
-        va_list argp;
-        va_start(argp, fmt);
-        vfprintf(stderr, fmt, argp);
-        va_end(argp);
-    }
-}
+//void softu2f_log(softu2f_ctx *ctx, char *fmt, ...) {
+//    if (ctx->debug) {
+//        va_list argp;
+//        va_start(argp, fmt);
+//        vfprintf(stderr, fmt, argp);
+//        va_end(argp);
+//    }
+//}
 
 // Log a U2FHID_FRAME if logging is enabled.
 void softu2f_debug_frame(softu2f_ctx *ctx, U2FHID_FRAME *frame, bool recv) {

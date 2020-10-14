@@ -90,7 +90,8 @@ void softu2f_hid_msg_finalize(softu2f_ctx *ctx, softu2f_hid_message *msg);
 void softu2f_hid_msg_free(softu2f_hid_message *msg);
 
 // Log a message if logging is enabled.
-void softu2f_log(softu2f_ctx *ctx, char *fmt, ...);
+#define softu2f_log(CTX,fmt,...) {os_log(OS_LOG_DEFAULT, fmt, ##__VA_ARGS__); }
+//void softu2f_log(softu2f_ctx *ctx, char *fmt, ...);
 
 // Log a U2FHID_FRAME if logging is enabled.
 void softu2f_debug_frame(softu2f_ctx *ctx, U2FHID_FRAME *frame, bool recv);
