@@ -340,22 +340,21 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             }
             //kern_return_t ret = kIOReturnBadArgument;
             if (report != nullptr) {
-                IODispatchQueue* queue = NULL;
+                IODispatchQueue* queue = nullptr;
                 ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
                 if (queue != NULL) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
                     queue->DispatchSync(^{
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                         sendReport(report);
-                        OSSafeReleaseNULL(report);
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Finish");
                     });
                 } else {
-                    OSSafeReleaseNULL(report);
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
                 }
                 //ret = sendReport(report);
                 //OSSafeReleaseNULL(report);
+                OSSafeReleaseNULL(report);
             }
             return kIOReturnSuccess;
             //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。
