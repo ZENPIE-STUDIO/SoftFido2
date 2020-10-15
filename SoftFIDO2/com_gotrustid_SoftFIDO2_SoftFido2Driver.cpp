@@ -57,14 +57,20 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
         Stop(provider, SUPERDISPATCH);
         return ret;
     }
-    IODispatchQueue* workQueue = nullptr;
-    ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
-        Stop(provider, SUPERDISPATCH);
-        return ret;
+//    IODispatchQueue* workQueue = nullptr;
+//    ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
+//    if (ret != kIOReturnSuccess) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
+//        Stop(provider, SUPERDISPATCH);
+//        return ret;
+//    }
+    //ivars->workQueue = workQueue;
+    CopyDispatchQueue(kIOServiceDefaultQueueName, &ivars->workQueue);
+    if (ivars->workQueue != NULL) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyDispatchQueue OK");
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyDispatchQueue - Nothing!");
     }
-    ivars->workQueue = workQueue;
     //SetDispatchQueue(kDispatchQueueName, workQueue);
     RegisterService();
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start OK");
