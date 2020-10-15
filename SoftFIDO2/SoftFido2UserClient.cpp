@@ -136,7 +136,8 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     
     // --------------------------------
     IODispatchQueue* queue = NULL;
-    ivars->provider->getDispatchQueue(&queue);
+    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+    //ivars->provider->getDispatchQueue(&queue);
     if (queue != NULL) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Prepare");
         queue->DispatchSync(^{
@@ -144,6 +145,8 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
             ret = innerFrameReceived(report);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Finish");
         });
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : NULL");
     }
     // --------------------------------
     return ret;
@@ -327,7 +330,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     switch (selector) {
         case kSoftU2FUserClientSendFrame: {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "<<<<<<< SendFrame >>>>>>>");
-            IOMemoryDescriptor* report = nullptr;
+            IOMemoryDescriptor* __block report = nullptr;
             if (arguments->structureInput != nullptr) {
                 // ---------<DEBUG DUMP>----------
                 dump((uint64_t) arguments->structureInput->getBytesNoCopy(), arguments->structureInput->getLength());
@@ -342,19 +345,22 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             kern_return_t ret = kIOReturnBadArgument;
             if (report != nullptr) {
                 IODispatchQueue* queue = NULL;
-                ivars->provider->getDispatchQueue(&queue);
+                ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+                //ivars->provider->getDispatchQueue(&queue);
                 if (queue != NULL) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Prepare");
                     queue->DispatchSync(^{
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Start");
                         sendReport(report);
+                        OSSafeReleaseNULL(report);
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Finish");
                     });
                 } else {
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "Cannot GetDispatchQueue");
+                    OSSafeReleaseNULL(report);
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : NULL");
                 }
                 //ret = sendReport(report);
-                OSSafeReleaseNULL(report);
+                //OSSafeReleaseNULL(report);
             }
             return ret;
             //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。

@@ -17,7 +17,7 @@ class IOUserClient;
 class com_gotrustid_SoftFIDO2_SoftFido2Driver: public IOService
 { 
 public:
-    virtual kern_return_t getDispatchQueue(IODispatchQueue** pQueue) LOCAL;
+    //virtual kern_return_t getDispatchQueue(IODispatchQueue** pQueue) LOCAL;
     
     virtual bool init() override;
     virtual void free() override;

@@ -22,10 +22,11 @@ struct com_gotrustid_SoftFIDO2_SoftFido2Driver_IVars {
     IODispatchQueue* workQueue; // SoftU2f 用IOWorkLoop *_workLoop，DriverKit 沒有
 };
 
-kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, getDispatchQueue) {
-    *pQueue = ivars->workQueue;
-    return true;
-}
+//kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, getDispatchQueue) {
+//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "getDispatchQueue");
+//    *pQueue = ivars->workQueue;
+//    return kIOReturnSuccess;
+//}
 
 bool com_gotrustid_SoftFIDO2_SoftFido2Driver::init() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "init");
