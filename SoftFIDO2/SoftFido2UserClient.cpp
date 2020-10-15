@@ -157,7 +157,6 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     kern_return_t ret = ivars->outputDescriptor->Map(0, 0, 0, 0, &bufferAddress, &bufferLength);
     // <<< IODMACommand >>>
     uint64_t flags = 0;
-    uint64_t dmaLength = 0;
     uint32_t dmaSegmentCount = 1;
     IOAddressSegment segments[32];
     IODMACommandSpecification spec;
@@ -169,7 +168,6 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         ret = dmaCmd->PrepareForDMA(0, report, 0, 0, &flags, &dmaSegmentCount, segments);
         if (ret == kIOReturnSuccess) {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA flags = %llu", flags);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA Length = %llu", dmaLength);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
             if (dmaSegmentCount > 0) {
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.address = %llu", segments[0].address);
@@ -179,7 +177,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             uint64_t length;
             IOMemoryDescriptor* out = nullptr;
             ret = dmaCmd->GetPreparation(&offset, &length, &out);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation (%d)", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
             if (out != nullptr) {
                 IOMemoryMap* outMemMap = nullptr;
                 out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
@@ -189,7 +187,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     
                     outAddress = bufferAddress + currentIdx * kFrameSize;
                     memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    ivars->notifyArgs[0] = outAddress;  // User Client 端目前不會用這個address
+                    ivars->notifyArgs[0] = outAddress;  // User Client 端目前不會用address
                     dump(outAddress, outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
                     //
@@ -202,7 +200,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                 }
             }
             ret = dmaCmd->CompleteDMA(0);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA (%d)", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA ret = %d", ret);
         }
         OSSafeReleaseNULL(dmaCmd);
     } else {
@@ -213,7 +211,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     }
     //----------------------------
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
     return ret;
 }
 
