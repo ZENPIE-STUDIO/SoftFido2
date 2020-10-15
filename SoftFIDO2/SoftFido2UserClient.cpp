@@ -35,7 +35,7 @@ struct SoftFido2UserClient_IVars {
     //
     IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
     uint64_t                outputBufferFrameCount = 0;
-    uint64_t                outputFrameIdx = 0;
+    uint32_t                outputFrameIdx = 0;
 };
 
 
@@ -88,6 +88,7 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
         service->release();
         return kIOReturnError;
     }
+    
 //    ret = IODispatchQueue::Create("commandGate", 0 /*options*/ , 0 /*priority*/, &(ivars->commandQueue));
 //    if (ret != kIOReturnSuccess) {
 //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create CommandGate Failed : %d", ret);
@@ -124,7 +125,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     // <<< GetLength >>>
     //
     uint64_t length = 0;
-    kern_return_t ret = report->GetLength(&length);
+    kern_return_t __block ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength Failed!");
         return ret;
@@ -134,20 +135,23 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     
     // --------------------------------
-    //IODispatchQueue* queue = NULL;
-    //ivars->provider->getDispatchQueue(&queue);
-    //if (queue != NULL) {
-        //queue->DispatchAsync(^{
-            return innerFrameReceived(report);
-        //});
-    //}
+    IODispatchQueue* queue = NULL;
+    ivars->provider->getDispatchQueue(&queue);
+    if (queue != NULL) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Prepare");
+        queue->DispatchSync(^{
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Start");
+            ret = innerFrameReceived(report);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Finish");
+        });
+    }
     // --------------------------------
-    //return kIOReturnSuccess;
+    return ret;
 }
 
 kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     const size_t kFrameSize = sizeof(U2FHID_FRAME);
-    uint32_t currentIdx = ivars->outputFrameIdx;
+    uint32_t currentIdx = (uint32_t) ivars->outputFrameIdx;
     uint64_t outAddress = 0;
     uint64_t bufferAddress = 0;
     uint64_t bufferLength = 0;
@@ -337,7 +341,19 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
             }
             kern_return_t ret = kIOReturnBadArgument;
             if (report != nullptr) {
-                ret = sendReport(report);
+                IODispatchQueue* queue = NULL;
+                ivars->provider->getDispatchQueue(&queue);
+                if (queue != NULL) {
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Prepare");
+                    queue->DispatchSync(^{
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Start");
+                        sendReport(report);
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Finish");
+                    });
+                } else {
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "Cannot GetDispatchQueue");
+                }
+                //ret = sendReport(report);
                 OSSafeReleaseNULL(report);
             }
             return ret;

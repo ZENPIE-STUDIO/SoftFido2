@@ -20,6 +20,7 @@
 #include "UserKernelShared.h"
 #include "SoftFido2Device.h"
 #include "SoftFido2UserClient.h"
+#include "com_gotrustid_SoftFIDO2_SoftFido2Driver.h"
 
 
 #define LOG_PREFIX "[SoftFido2][Device] "
