@@ -122,8 +122,6 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
-    // <<< GetLength >>>
-    //
     uint64_t length = 0;
     kern_return_t __block ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
@@ -133,20 +131,18 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     // (結果)都是 64bytes
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
-    
     // --------------------------------
     IODispatchQueue* queue = NULL;
     ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-    //ivars->provider->getDispatchQueue(&queue);
     if (queue != NULL) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Prepare");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Prepare");
         queue->DispatchSync(^{
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Start");
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Start");
             ret = innerFrameReceived(report);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : Finish");
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Finish");
         });
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Recv DispatchSync : NULL");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : NULL");
     }
     // --------------------------------
     return ret;
@@ -342,27 +338,26 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                 report = arguments->structureInputDescriptor;
                 report->retain();
             }
-            kern_return_t ret = kIOReturnBadArgument;
+            //kern_return_t ret = kIOReturnBadArgument;
             if (report != nullptr) {
                 IODispatchQueue* queue = NULL;
                 ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-                //ivars->provider->getDispatchQueue(&queue);
                 if (queue != NULL) {
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Prepare");
-                    queue->DispatchSync(^{
-                        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Start");
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
+                    queue->DispatchAsync(^{
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                         sendReport(report);
                         OSSafeReleaseNULL(report);
-                        os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : Finish");
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Finish");
                     });
                 } else {
                     OSSafeReleaseNULL(report);
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX " Send DispatchSync : NULL");
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
                 }
                 //ret = sendReport(report);
                 //OSSafeReleaseNULL(report);
             }
-            return ret;
+            return kIOReturnSuccess;
             //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。
             //  應該是在宣告時有指定 checkStructureInputSize
             // sSendFrame, 0, sizeof(U2FHID_FRAME), 0, 0
