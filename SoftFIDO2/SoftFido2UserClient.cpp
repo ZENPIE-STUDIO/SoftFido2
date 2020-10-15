@@ -179,7 +179,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             uint64_t length;
             IOMemoryDescriptor* out = nullptr;
             ret = dmaCmd->GetPreparation(&offset, &length, &out);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation = %d", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation (%d)", ret);
             if (out != nullptr) {
                 IOMemoryMap* outMemMap = nullptr;
                 out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
@@ -202,18 +202,18 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                 }
             }
             ret = dmaCmd->CompleteDMA(0);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA = %d", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA (%d)", ret);
         }
         OSSafeReleaseNULL(dmaCmd);
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed = %d", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed (%d)", ret);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
     }
     //----------------------------
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "After AsyncCompletion args = %llu, currentIdx = %u", (uint64_t) ivars->notifyArgs, currentIdx);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs);
     return ret;
 }
 
@@ -320,7 +320,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
 //    } else {
 //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod reference = null");
 //    }
-    debugArguments(arguments);
+    //debugArguments(arguments);
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
@@ -344,7 +344,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                 ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
                 if (queue != NULL) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
-                    queue->DispatchAsync(^{
+                    queue->DispatchSync(^{
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                         sendReport(report);
                         OSSafeReleaseNULL(report);

@@ -146,10 +146,11 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
+        const int kSleepMs = 100;
         ret = userClient->frameReceived(report, action);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   frameReceived ret = %d", ret);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep 1ms");
-        IOSleep(1); // 1ms
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
+        IOSleep(kSleepMs);
     }
     // Sleep for a bit to make the HID conformance tests happy.
     uint64_t length;
