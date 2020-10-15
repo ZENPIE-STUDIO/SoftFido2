@@ -65,7 +65,7 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
         return ret;
     }
     ivars->workQueue = workQueue;
-    SetDispatchQueue(kDispatchQueueName, workQueue);
+    //SetDispatchQueue(kDispatchQueueName, workQueue);
     RegisterService();
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start OK");
     return ret;
