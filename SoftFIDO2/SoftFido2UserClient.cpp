@@ -174,6 +174,8 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             IOMemoryDescriptor* out = nullptr;
             ret = dmaCmd->GetPreparation(&offset, &length, &out);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
             if (out != nullptr) {
                 IOMemoryMap* outMemMap = nullptr;
                 out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
