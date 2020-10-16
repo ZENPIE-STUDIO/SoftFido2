@@ -139,7 +139,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Prepare");
         queue->DispatchSync(^{
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Start");
-            ret = innerFrameReceived(report);
+            ret = innerFrameReceived(report, action);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Finish");
         });
     } else {
@@ -209,7 +209,11 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     //----------------------------
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
     const uint32_t asyncDataCount = sizeof(U2FHID_FRAME) / sizeof(uint64_t);
-    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
+    // TEST: action or ivars->notifyFrameAction
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "action = %llu", (uint64_t) action);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "ivars->notifyFrameAction = %llu", (uint64_t) ivars->notifyFrameAction);
+    //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
+    AsyncCompletion(action, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
     ivars->outputFrameIdx++;    // 單純計數
     //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
