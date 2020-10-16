@@ -146,18 +146,15 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
-        const int kSleepMs = 100;
+        const int kSleepMs = 10;
         ret = userClient->frameReceived(report, action);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   frameReceived ret = %d", ret);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
         IOSleep(kSleepMs);
     }
     // Sleep for a bit to make the HID conformance tests happy.
-    uint64_t length;
-    report->GetLength(&length);
-    CompleteReport(action, kIOReturnSuccess, (uint32_t) length); // 沒有這個，LOG會有
-    // SoftFido2Device:0x1000008a6 Action aborted 0 1
-    // SoftFido2Device:0x1000008a6 ProcessReport:0xe00002eb 1 0
+    uint32_t actualByteCount = 8;   // 目前固定是 8 (FrameSize / sizeof(uint64_t))
+    CompleteReport(action, kIOReturnSuccess, actualByteCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     return ret;
 }

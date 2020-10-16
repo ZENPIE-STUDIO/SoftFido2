@@ -122,7 +122,8 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 }
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Index = %u", ivars->outputFrameIdx);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
     uint64_t length = 0;
     kern_return_t __block ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
@@ -130,8 +131,7 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         return ret;
     }
     // (結果)都是 64bytes
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     // --------------------------------
     IODispatchQueue* queue = NULL;
     ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
@@ -210,7 +210,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
     const uint32_t asyncDataCount = sizeof(U2FHID_FRAME) / sizeof(uint64_t);
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion %u DataCount = %u", ivars->outputFrameIdx, asyncDataCount);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
     ivars->outputFrameIdx++;    // 單純計數
     //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
