@@ -28,9 +28,9 @@ void debugArguments(IOUserClientMethodArguments* arguments);
 struct SoftFido2UserClient_IVars {
     com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
     SoftFido2Device* fido2Device;
-    //IODispatchQueue* commandQueue = nullptr;
     //
-    uint64_t        notifyArgs[8];
+    IOUserClientAsyncArgumentsArray notifyArgs;
+    //uint64_t        notifyArgs[8];
     OSAction*       notifyFrameAction = nullptr;
     //
     IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
@@ -187,11 +187,12 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     
                     outAddress = bufferAddress + currentIdx * kFrameSize;
                     memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    ivars->notifyArgs[0] = outAddress;  // User Client 端目前不會用address
+                    ivars->notifyArgs[currentIdx] = outAddress;  // User Client 端目前不會用address
                     dump(outAddress, outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
                     //
                     const uint32_t nextIdx = currentIdx + 1;
+                    // outputBufferFrameCount 固定16試試
                     if (nextIdx < ivars->outputBufferFrameCount) {
                         ivars->outputFrameIdx = nextIdx;
                     } else {
@@ -382,7 +383,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                 ivars->outputDescriptor = arguments->structureOutputDescriptor;
                 ivars->outputDescriptor->retain();
                 //
-                ivars->outputBufferFrameCount = arguments->structureOutputMaximumSize / sizeof(U2FHID_FRAME);
+                ivars->outputBufferFrameCount = 16;//arguments->structureOutputMaximumSize / sizeof(U2FHID_FRAME);
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "outputBufferFrameCount = %llu", ivars->outputBufferFrameCount);
             }
             return kIOReturnSuccess;
