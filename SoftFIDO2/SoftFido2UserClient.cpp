@@ -29,8 +29,9 @@ struct SoftFido2UserClient_IVars {
     com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
     SoftFido2Device* fido2Device;
     //
+    // uint64 * kIOUserClientAsyncArgumentsCountMax(16) = 8 * 16 = 128
+    // 可以傳 2 個 FRAME，我用來傳 1個
     IOUserClientAsyncArgumentsArray notifyArgs;
-    //uint64_t        notifyArgs[8];
     OSAction*       notifyFrameAction = nullptr;
     //
     IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
@@ -187,7 +188,9 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     
                     outAddress = bufferAddress + currentIdx * kFrameSize;
                     memcpy((void*) outAddress, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    ivars->notifyArgs[currentIdx] = outAddress;  // User Client 端目前不會用address
+                    // 試用 notifyArgs 回傳 Frame
+                    memcpy((void*) ivars->notifyArgs, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
+                    //ivars->notifyArgs[currentIdx] = outAddress;  // User Client 端目前不會用address
                     dump(outAddress, outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
                     //
@@ -211,8 +214,13 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
     }
     //----------------------------
-    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
+    // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
+    //
+    const uint32_t asyncDataCount = sizeof(U2FHID_FRAME) / sizeof(uint64_t);
+    AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
+    //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
     return ret;
 }
 
