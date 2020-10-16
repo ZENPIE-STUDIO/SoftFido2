@@ -9,18 +9,6 @@
 #import <Cocoa/Cocoa.h>
 #import "DriverKitManager.h"
 
-#import "U2FHID.h"
-U2FHID* gU2fhid = NULL;
-
-void closePreviousRunningInstance() {
-    NSLog(@"Close Previous Running Instance");
-    NSArray<NSRunningApplication*>* apps = [NSRunningApplication runningApplicationsWithBundleIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
-    if ([apps count] > 1) {
-        //[[apps objectAtIndex:1] terminate];   // 自己
-        [[apps objectAtIndex:0] terminate];     // 先前的
-    }
-}
-
 void processArguments(NSArray<NSString *> *arguments) {
     boolean_t __block doActivate = true;
     // Idx(0) 自己的執行路徑
@@ -36,31 +24,13 @@ void processArguments(NSArray<NSString *> *arguments) {
         } else if ([argument isEqualToString:@"exit"]) {
             NSLog(@"exit");
             doActivate = false;
-            closePreviousRunningInstance();
-            exit(EXIT_SUCCESS);
+            //closePreviousRunningInstance();
+            //exit(EXIT_SUCCESS);
+            [DriverKitManager closeAllRunningInstance];
         }
     }];
     if (doActivate) {
-        if (0) {
-            gU2fhid = [U2FHID new];
-            [gU2fhid handleType:CTAPHID_CBOR Handler:^bool(softu2f_hid_message * _Nonnull msg) {
-                NSData *data = (__bridge NSData *) msg->data;
-                NSLog(@"[CTAPHID_CBOR] data = %@", data);
-                //[gU2fhid sendFido2Error:CTAPHID_ERR_CHANNEL_BUSY CID:msg->cid];
-                return true;
-            }];
-            [gU2fhid run];
-            
-            // ---
-            // 測試資料傳送
-            NSMutableData* data = [NSMutableData new];
-            for (uint8 i = 1; i <= 50; i++) {
-                [data appendBytes:&i length:1];
-            }
-            [gU2fhid sendMsg:data CID:99];
-        } else {
-            [[DriverKitManager shared] activate];
-        }
+        [[DriverKitManager shared] activate];
     }
 }
 

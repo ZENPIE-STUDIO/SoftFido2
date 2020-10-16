@@ -17,6 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) activate;
 - (void) deactivate;
 
+// 只是用來關 App
++ (void) closeAllRunningInstance;
 @end
 
 NS_ASSUME_NONNULL_END

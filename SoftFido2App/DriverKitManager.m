@@ -8,6 +8,7 @@
 
 #import "DriverKitManager.h"
 #import <SystemExtensions/SystemExtensions.h>
+#import <AppKit/AppKit.h>
 
 #define LOGD(format,...)    {NSLog(format, ##__VA_ARGS__); }
 #define LOGE(format,...)    {NSLog(format, ##__VA_ARGS__); }
@@ -80,7 +81,8 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
             break;
     }
     LOGD(@"exit");
-    exit(EXIT_SUCCESS);
+    //exit(EXIT_SUCCESS);
+    [DriverKitManager closeAllRunningInstance];
 }
 
 // Request 失敗
@@ -104,8 +106,18 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
         default: LOGD(@"Other Error : %@", error.localizedDescription); break;
     }
     LOGD(@"exit");
-    exit(EXIT_SUCCESS);
+    //exit(EXIT_SUCCESS);
+    [DriverKitManager closeAllRunningInstance];
     //NSLog(@"didFailWithError localizedFailureReason : %@", error.localizedFailureReason);
     //NSLog(@"didFailWithError localizedRecoverySuggestion : %@", error.localizedRecoverySuggestion);
+}
+
+
++ (void) closeAllRunningInstance {
+    NSLog(@"Close All Running Instance");
+    NSArray<NSRunningApplication*>* apps = [NSRunningApplication runningApplicationsWithBundleIdentifier:[[NSBundle mainBundle] bundleIdentifier]];
+    [apps enumerateObjectsUsingBlock:^(NSRunningApplication * _Nonnull app, NSUInteger idx, BOOL * _Nonnull stop) {
+        [app terminate];
+    }];
 }
 @end

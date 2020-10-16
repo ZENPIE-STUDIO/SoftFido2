@@ -9,10 +9,6 @@
 /* Begin PBXBuildFile section */
 		27038DB324FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27038DB224FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.cpp */; };
 		27038DB524FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.iig in Sources */ = {isa = PBXBuildFile; fileRef = 27038DB424FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.iig */; };
-		27396D6825342E2400FF895B /* UserKernelShared.h in Headers */ = {isa = PBXBuildFile; fileRef = 27396D6325342E2400FF895B /* UserKernelShared.h */; };
-		27396D7525342E8000FF895B /* U2FHID.m in Sources */ = {isa = PBXBuildFile; fileRef = 27396D6D25342E4300FF895B /* U2FHID.m */; };
-		27396D8025342E9C00FF895B /* softu2f.c in Sources */ = {isa = PBXBuildFile; fileRef = 27396D6525342E2400FF895B /* softu2f.c */; };
-		27396D8F25342EE000FF895B /* SoftU2FContants.m in Sources */ = {isa = PBXBuildFile; fileRef = 27396D8325342ECC00FF895B /* SoftU2FContants.m */; };
 		277C580725076F1000D156BF /* DriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 277C580625076F1000D156BF /* DriverKit.framework */; };
 		2780EBC424FF73D0009332AC /* HIDDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2780EBC324FF73CF009332AC /* HIDDriverKit.framework */; };
 		2780EBC624FF76CC009332AC /* SoftFido2Device.iig in Sources */ = {isa = PBXBuildFile; fileRef = 2780EBC524FF76CC009332AC /* SoftFido2Device.iig */; };
@@ -57,15 +53,6 @@
 		27038DB424FE4B8D002F7F77 /* com_gotrustid_SoftFIDO2_SoftFido2Driver.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = com_gotrustid_SoftFIDO2_SoftFido2Driver.iig; sourceTree = "<group>"; };
 		27038DB624FE4B8D002F7F77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		271C0C4E2508B3F200F9DE4E /* SoftFIDO2.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = SoftFIDO2.entitlements; sourceTree = "<group>"; };
-		27396D6125342E2400FF895B /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
-		27396D6225342E2400FF895B /* u2f_hid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = u2f_hid.h; sourceTree = "<group>"; };
-		27396D6325342E2400FF895B /* UserKernelShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserKernelShared.h; sourceTree = "<group>"; };
-		27396D6425342E2400FF895B /* softu2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softu2f.h; sourceTree = "<group>"; };
-		27396D6525342E2400FF895B /* softu2f.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softu2f.c; sourceTree = "<group>"; };
-		27396D6D25342E4300FF895B /* U2FHID.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = U2FHID.m; sourceTree = "<group>"; };
-		27396D6E25342E4300FF895B /* U2FHID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = U2FHID.h; sourceTree = "<group>"; };
-		27396D8325342ECC00FF895B /* SoftU2FContants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoftU2FContants.m; sourceTree = "<group>"; };
-		27396D8925342EDD00FF895B /* SoftU2FContants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoftU2FContants.h; sourceTree = "<group>"; };
 		277C580625076F1000D156BF /* DriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DriverKit.framework; path = System/DriverKit/System/Library/Frameworks/DriverKit.framework; sourceTree = SDKROOT; };
 		277C580825076F1A00D156BF /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = SDKROOT; };
 		27808C73251304D300400323 /* BufMemoryUtils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufMemoryUtils.hpp; sourceTree = "<group>"; };
@@ -154,26 +141,9 @@
 			path = SoftFIDO2;
 			sourceTree = "<group>";
 		};
-		27396D6025342E2400FF895B /* SoftU2FDriverLib */ = {
-			isa = PBXGroup;
-			children = (
-				27396D8925342EDD00FF895B /* SoftU2FContants.h */,
-				27396D8325342ECC00FF895B /* SoftU2FContants.m */,
-				27396D6E25342E4300FF895B /* U2FHID.h */,
-				27396D6D25342E4300FF895B /* U2FHID.m */,
-				27396D6325342E2400FF895B /* UserKernelShared.h */,
-				27396D6125342E2400FF895B /* internal.h */,
-				27396D6225342E2400FF895B /* u2f_hid.h */,
-				27396D6425342E2400FF895B /* softu2f.h */,
-				27396D6525342E2400FF895B /* softu2f.c */,
-			);
-			path = SoftU2FDriverLib;
-			sourceTree = "<group>";
-		};
 		27CBC2772500907500400E4D /* SoftFido2App */ = {
 			isa = PBXGroup;
 			children = (
-				27396D6025342E2400FF895B /* SoftU2FDriverLib */,
 				27ADA4E2252F0B78009EBE6B /* DriverKitManager.h */,
 				27ADA4E1252F0B78009EBE6B /* DriverKitManager.m */,
 				27CBC2782500907500400E4D /* AppDelegate.h */,
@@ -194,7 +164,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				27AA6845250F402D00FDB44A /* u2f_hid.h in Headers */,
-				27396D6825342E2400FF895B /* UserKernelShared.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,10 +279,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27396D8025342E9C00FF895B /* softu2f.c in Sources */,
 				27CBC2852500907600400E4D /* main.m in Sources */,
-				27396D7525342E8000FF895B /* U2FHID.m in Sources */,
-				27396D8F25342EE000FF895B /* SoftU2FContants.m in Sources */,
 				27CBC27A2500907500400E4D /* AppDelegate.m in Sources */,
 				27ADA4E3252F0B78009EBE6B /* DriverKitManager.m in Sources */,
 			);

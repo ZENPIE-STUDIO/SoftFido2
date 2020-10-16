@@ -174,17 +174,18 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             IOMemoryDescriptor* out = nullptr;
             ret = dmaCmd->GetPreparation(&offset, &length, &out);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
+            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
+            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
             if (out != nullptr) {
                 IOMemoryMap* outMemMap = nullptr;
                 out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
                 if (outMemMap != nullptr) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
-                    // 試用 notifyArgs 回傳 Frame 內容
+                    dump(outMemMap->GetAddress(), outMemMap->GetLength()); // Debug Dump
+                    // 用 notifyArgs 回傳 Frame 內容
                     memcpy((void*) ivars->notifyArgs, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    dump((uint64_t)(ivars->notifyArgs), outMemMap->GetLength()); // Debug Dump
+                    //dump((uint64_t)(ivars->notifyArgs), outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
                     //
 //                    const uint32_t nextIdx = currentIdx + 1;
