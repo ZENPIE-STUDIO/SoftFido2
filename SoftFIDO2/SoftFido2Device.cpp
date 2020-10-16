@@ -152,10 +152,6 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
         IOSleep(kSleepMs);
     }
-    // Sleep for a bit to make the HID conformance tests happy.
-    uint32_t actualByteCount = 8;   // 目前固定是 8 (FrameSize / sizeof(uint64_t))
-    CompleteReport(action, kIOReturnSuccess, actualByteCount);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     return ret;
 }
 
