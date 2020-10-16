@@ -133,18 +133,18 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(U2FHID_FRAME) = %lu", sizeof(U2FHID_FRAME));
     // --------------------------------
-    //IODispatchQueue* queue = NULL;
-    //ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-    //if (queue != NULL) {
+    IODispatchQueue* queue = NULL;
+    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+    if (queue != NULL) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Prepare");
-        //queue->DispatchSync(^{
+        queue->DispatchSync(^{
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Start");
             ret = innerFrameReceived(report);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Finish");
-        //});
-    //} else {
-        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : NULL");
-    //}
+        });
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : NULL");
+    }
     // --------------------------------
     return ret;
 }
