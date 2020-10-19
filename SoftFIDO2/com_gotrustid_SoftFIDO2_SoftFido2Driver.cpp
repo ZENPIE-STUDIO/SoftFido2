@@ -16,17 +16,9 @@
 
 #define LOG_PREFIX "[SoftFido2][Driver] "
 
-static const char* kDispatchQueueName = "SoftFidoQueue";
-
 struct com_gotrustid_SoftFIDO2_SoftFido2Driver_IVars {
-    IODispatchQueue* workQueue; // SoftU2f 用IOWorkLoop *_workLoop，DriverKit 沒有
+    //IODispatchQueue* workQueue; // SoftU2f 用IOWorkLoop *_workLoop，DriverKit 沒有
 };
-
-//kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, getDispatchQueue) {
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "getDispatchQueue");
-//    *pQueue = ivars->workQueue;
-//    return kIOReturnSuccess;
-//}
 
 bool com_gotrustid_SoftFIDO2_SoftFido2Driver::init() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "init");
@@ -43,7 +35,6 @@ bool com_gotrustid_SoftFIDO2_SoftFido2Driver::init() {
 
 void com_gotrustid_SoftFIDO2_SoftFido2Driver::free() {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "free");
-    IOSafeDeleteNULL(ivars->workQueue, IODispatchQueue, 1);
     IOSafeDeleteNULL(ivars, com_gotrustid_SoftFIDO2_SoftFido2Driver_IVars, 1);
     super::free();
 }
@@ -58,21 +49,7 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
         Stop(provider, SUPERDISPATCH);
         return ret;
     }
-//    IODispatchQueue* workQueue = nullptr;
-//    ret = IODispatchQueue::Create(kDispatchQueueName, 0 /*options*/ , 0 /*priority*/, &workQueue);
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create Failed!");
-//        Stop(provider, SUPERDISPATCH);
-//        return ret;
-//    }
-    //ivars->workQueue = workQueue;
-    CopyDispatchQueue(kIOServiceDefaultQueueName, &ivars->workQueue);
-    if (ivars->workQueue != NULL) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyDispatchQueue OK");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyDispatchQueue - Nothing!");
-    }
-    //SetDispatchQueue(kDispatchQueueName, workQueue);
+
     RegisterService();
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start OK");
     return ret;
@@ -80,7 +57,6 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Start) {
 
 kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Stop) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Stop");
-    SetDispatchQueue(kDispatchQueueName, NULL);
     return Stop(provider, SUPERDISPATCH);
 }
 
