@@ -26,10 +26,12 @@
 void debugArguments(IOUserClientMethodArguments* arguments);
 
 struct SoftFido2UserClient_IVars {
-    com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
-    SoftFido2Device* fido2Device;
+    com_gotrustid_SoftFIDO2_SoftFido2Driver* provider = nullptr;
+    SoftFido2Device*        fido2Device = nullptr;
     //
-    IODMACommand* dmaCmd = nullptr;
+    IODMACommand*           dmaCmd = nullptr;
+    IODispatchQueue*        dispatchQueue = nullptr;
+
     // uint64 * kIOUserClientAsyncArgumentsCountMax(16) = 8 * 16 = 128
     // 可以傳 2 個 FRAME，我用來傳 1個
     OSAction*       notifyFrameAction = nullptr;
@@ -99,6 +101,10 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
         return ret;
     }
     
+    // Dispatch Queue;
+    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &(ivars->dispatchQueue));
+
+    //
     SoftFido2Device* device = OSDynamicCast(SoftFido2Device, service);
     ivars->fido2Device = device;
     if (ivars->fido2Device == nullptr) {
@@ -106,15 +112,8 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
         service->release();
         return kIOReturnError;
     }
-    
     // DMA Command
     ivars->dmaCmd = newDMACommand(ivars->fido2Device);
-//    ret = IODispatchQueue::Create("commandGate", 0 /*options*/ , 0 /*priority*/, &(ivars->commandQueue));
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create CommandGate Failed : %d", ret);
-//        return ret;
-//    }
-//    device->release();
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "--- Start ---");
     return ret;
 }
@@ -126,6 +125,9 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
     }
     if (ivars->dmaCmd != nullptr) {
         OSSafeReleaseNULL(ivars->dmaCmd);
+    }
+    if (ivars->dispatchQueue != nullptr) {
+        OSSafeReleaseNULL(ivars->dispatchQueue);
     }
     return Stop(provider, SUPERDISPATCH);
 }
@@ -155,11 +157,9 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     // (結果)都是 64bytes
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     // --------------------------------
-    IODispatchQueue* queue = NULL;
-    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-    if (queue != NULL) {
+    if (ivars->dispatchQueue != nullptr) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Prepare");
-        queue->DispatchSync(^{
+        ivars->dispatchQueue->DispatchSync(^{
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Start");
             ret = innerFrameReceived(report, action);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Finish");
@@ -218,13 +218,8 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     //----------------------------
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
     const uint32_t asyncDataCount = HID_RPT_SIZE / sizeof(uint64_t);    // 64 / 8 = 8
-    // action or ivars->notifyFrameAction => 兩個不一樣
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "action = %llu", (uint64_t) action);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "ivars->notifyFrameAction = %llu", (uint64_t) ivars->notifyFrameAction);
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, notifyArgs, asyncDataCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
-    //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
 
     return ret;
 }
@@ -347,11 +342,9 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                                kIOMemoryDirectionIn,
                                                                &report);
                 if (report != nullptr) {
-                    IODispatchQueue* queue = nullptr;
-                    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-                    if (queue != NULL) {
+                    if (ivars->dispatchQueue != NULL) {
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
-                        queue->DispatchSync(^{
+                        ivars->dispatchQueue->DispatchSync(^{
                             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                             sendReport(report);
                             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Finish");
