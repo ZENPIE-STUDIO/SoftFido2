@@ -121,29 +121,29 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
-    uint64_t length = 0;
-    kern_return_t __block ret = report->GetLength(&length);
-    if (ret != kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength Failed!");
-        return ret;
-    }
+//    uint64_t length = 0;
+//    kern_return_t __block ret = report->GetLength(&length);
+//    if (ret != kIOReturnSuccess) {
+//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength Failed!");
+//        return ret;
+//    }
     // (結果)都是 64bytes
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     // --------------------------------
     IODispatchQueue* queue = NULL;
     ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
     if (queue != NULL) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Prepare");
-        queue->DispatchSync(^{
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Start");
-            ret = innerFrameReceived(report, action);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : Finish");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Prepare");
+        queue->DispatchAsync(^{
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Start");
+            /*kern_return_t ret = */innerFrameReceived(report, action);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Finish");
         });
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchQueue : NULL");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : NULL");
     }
     // --------------------------------
-    return ret;
+    return kIOReturnSuccess;
 }
 
 kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
@@ -154,52 +154,52 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     uint32_t dmaSegmentCount = 1;
     IOAddressSegment segments[32];
     IODMACommandSpecification spec;
+    spec.options = kIODMACommandSpecificationNoOptions;
     spec.maxAddressBits = 64;
     IODMACommand* dmaCmd = nullptr;
-    ret = IODMACommand::Create(ivars->fido2Device, 0, &spec, &dmaCmd);
-    if (dmaCmd != nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
-        ret = dmaCmd->PrepareForDMA(0, report, 0, 0, &flags, &dmaSegmentCount, segments);
-        if (ret == kIOReturnSuccess) {
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA flags = %llu", flags);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
-            if (dmaSegmentCount > 0) {
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.address = %llu", segments[0].address);
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.length = %llu", segments[0].length);
-            }
-            uint64_t offset;
-            uint64_t length;
-            IOMemoryDescriptor* out = nullptr;
-            ret = dmaCmd->GetPreparation(&offset, &length, &out);
-            // 得到 offset = 0, length = 64
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
-            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
-            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
-            if (out != nullptr) {
-                IOMemoryMap* outMemMap = nullptr;
-                out->CreateMapping(0, 0, 0, 0, 0, &outMemMap);
-                if (outMemMap != nullptr) {
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
-                    dump(outMemMap->GetAddress(), outMemMap->GetLength()); // Debug Dump
-                    // 用 notifyArgs 回傳 Frame 內容，將資料copy過去
-                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(notifyArgs) = %lu", sizeof(notifyArgs));
-                    //memset((void*) ivars->notifyArgs, 0, HID_RPT_SIZE);
-                    memcpy((void*) notifyArgs, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
-                    //dump((uint64_t)(ivars->notifyArgs), outMemMap->GetLength()); // Debug Dump
-                    OSSafeReleaseNULL(outMemMap);
-                }
-            }
-            ret = dmaCmd->CompleteDMA(0);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA ret = %d", ret);
-        }
-        OSSafeReleaseNULL(dmaCmd);
-    } else {
+    ret = IODMACommand::Create(ivars->fido2Device, kIODMACommandCreateNoOptions, &spec, &dmaCmd);
+    if (dmaCmd == nullptr) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed (%d)", ret);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
+        return ret;
     }
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
+    ret = dmaCmd->PrepareForDMA(kIODMACommandPrepareForDMANoOptions, report, 0, 0, &flags, &dmaSegmentCount, segments);
+    if (ret == kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA flags = %llu", flags);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA SegmentCount = %u", dmaSegmentCount);
+        if (dmaSegmentCount > 0) {
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.address = %llu", segments[0].address);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.length = %llu", segments[0].length);
+        }
+        uint64_t offset;
+        uint64_t length;
+        IOMemoryDescriptor* out = nullptr;
+        ret = dmaCmd->GetPreparation(&offset, &length, &out);
+        // 得到 offset = 0, length = 64
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
+        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
+        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
+        if (out != nullptr) {
+            IOMemoryMap* outMemMap = nullptr;
+            out->CreateMapping(kIOMemoryMapCacheModeDefault, 0, 0, 0, 0, &outMemMap);
+            if (outMemMap != nullptr) {
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
+                dump(outMemMap->GetAddress(), outMemMap->GetLength()); // Debug Dump
+                // 用 notifyArgs 回傳 Frame 內容，將資料copy過去
+                //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(notifyArgs) = %lu", sizeof(notifyArgs)); => 128
+                //memset((void*) ivars->notifyArgs, 0, HID_RPT_SIZE);
+                memcpy((void*) notifyArgs, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
+                OSSafeReleaseNULL(outMemMap);
+            }
+        }
+        ret = dmaCmd->CompleteDMA(kIODMACommandCompleteDMANoOptions);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA ret = %d", ret);
+    }
+    OSSafeReleaseNULL(dmaCmd);
     //----------------------------
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
     const uint32_t asyncDataCount = HID_RPT_SIZE / sizeof(uint64_t);    // 64 / 8 = 8
