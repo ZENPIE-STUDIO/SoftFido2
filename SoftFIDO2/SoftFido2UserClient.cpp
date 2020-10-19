@@ -131,18 +131,18 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     // (結果)都是 64bytes
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
     // --------------------------------
-//    IODispatchQueue* queue = NULL;
-//    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-//    if (queue != NULL) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Prepare");
-//        queue->DispatchSync(^{
-//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Start");
+    IODispatchQueue* queue = NULL;
+    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+    if (queue != NULL) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Prepare");
+        queue->DispatchSync(^{
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Start");
             ret = innerFrameReceived(report, action);
-//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Finish");
-//        });
-//    } else {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : NULL");
-//    }
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Finish");
+        });
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : NULL");
+    }
     // --------------------------------
     return ret;
 }
@@ -333,18 +333,18 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                                                                kIOMemoryDirectionIn,
                                                                &report);
                 if (report != nullptr) {
-                    //IODispatchQueue* queue = nullptr;
-                    //ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-                    //if (queue != NULL) {
-                        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchSync : Prepare");
-                        //queue->DispatchSync(^{
-                            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchSync : Start");
+                    IODispatchQueue* queue = nullptr;
+                    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+                    if (queue != NULL) {
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
+                        queue->DispatchSync(^{
+                            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                             sendReport(report);
-                            //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchSync : Finish");
-                        //});
-                    //} else {
-                        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchSync : NULL");
-                    //}
+                            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Finish");
+                        });
+                    } else {
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
+                    }
                     OSSafeReleaseNULL(report);
                 }
                 return kIOReturnSuccess;
