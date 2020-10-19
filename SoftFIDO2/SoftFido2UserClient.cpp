@@ -211,16 +211,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
     //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
-    const int kSleepMs = 10;
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
-    IOSleep(kSleepMs);
-    //
-    if (ivars->fido2Device != nullptr) {
-        ivars->fido2Device->CompleteReport(action, kIOReturnSuccess, HID_RPT_SIZE);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "fido2Device is null!");
-    }
+
     return ret;
 }
 

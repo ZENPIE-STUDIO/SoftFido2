@@ -150,6 +150,12 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         ret = userClient->frameReceived(report, action);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   frameReceived ret = %d", ret);
     }
+    const int kSleepMs = 1;
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
+    IOSleep(kSleepMs);
+    //
+    CompleteReport(action, kIOReturnSuccess, HID_RPT_SIZE);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     return ret;
 }
 
