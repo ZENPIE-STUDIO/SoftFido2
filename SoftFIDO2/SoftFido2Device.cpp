@@ -12,10 +12,9 @@
 #include <DriverKit/IOMemoryDescriptor.h>
 #include <DriverKit/IOMemoryMap.h>
 #include <DriverKit/OSCollections.h>
-#include <HIDDriverKit/IOHIDInterface.h>
+//#include <HIDDriverKit/IOHIDInterface.h>
 #include <HIDDriverKit/IOHIDDeviceKeys.h>
-#include <HIDDriverKit/IOHIDUsageTables.h>
-#include <USBDriverKit/IOUSBHostInterface.h>
+//#include <HIDDriverKit/IOHIDUsageTables.h>
 #include "u2f_hid.h"
 #include "UserKernelShared.h"
 #include "SoftFido2Device.h"
@@ -27,7 +26,8 @@
 
 struct SoftFido2Device_IVars {
     SoftFido2UserClient*    provider;
-    //IOUSBHostInterface*     interface;
+    
+    uint32_t                frameIdxFromSetReport = 0;
 };
 
 bool SoftFido2Device::init() {
@@ -120,7 +120,8 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
                                          uint32_t completionTimeout,
                                          OSAction* action) {
     kern_return_t ret = kIOReturnSuccess;
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "-------------------------------------------------");
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "----------------------- %u ----------------------", ivars->frameIdxFromSetReport);
+    ivars->frameIdxFromSetReport++;
     switch (reportType) {
         case kIOHIDReportTypeInput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Input)"); break;
         case kIOHIDReportTypeOutput: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Output)"); break;
@@ -165,8 +166,6 @@ bool SoftFido2Device::handleStart(IOService* provider) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "handleStart > super::handleStart failed");
         return false;
     }
-    // IOUSBHostInterface 可以幹什麼？
-    //ivars->interface = OSDynamicCast(IOUSBHostInterface, provider);
     return true;
 }
 
@@ -229,6 +228,3 @@ OSData* SoftFido2Device::newReportDescriptor(void) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "newReportDescriptor size = %lu", kSizeOfReportDescriptor);
     return OSData::withBytes(u2fhid_report_descriptor, kSizeOfReportDescriptor);
 }
-
-#pragma mark - 備份一些測試function
-// 結果: 無法建立，連LOG都看不到…
