@@ -121,6 +121,7 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
+    kern_return_t __block ret = kIOReturnSuccess;
 //    uint64_t length = 0;
 //    kern_return_t __block ret = report->GetLength(&length);
 //    if (ret != kIOReturnSuccess) {
@@ -133,17 +134,17 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
     IODispatchQueue* queue = NULL;
     ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
     if (queue != NULL) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Prepare");
-        queue->DispatchAsync(^{
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Start");
-            /*kern_return_t ret = */innerFrameReceived(report, action);
-            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : Finish");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Prepare");
+        queue->DispatchSync(^{
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Start");
+            ret = innerFrameReceived(report, action);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Finish");
         });
     } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchAsync : NULL");
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : NULL");
     }
     // --------------------------------
-    return kIOReturnSuccess;
+    return ret;
 }
 
 kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
