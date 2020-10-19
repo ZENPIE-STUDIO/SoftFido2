@@ -36,7 +36,6 @@ struct SoftFido2UserClient_IVars {
     //
     //IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
     //uint64_t                outputBufferFrameCount = 0;
-    uint32_t                outputFrameIdx = 0;
 };
 
 
@@ -122,8 +121,7 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 }
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Index = %u", ivars->outputFrameIdx);
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
     uint64_t length = 0;
     kern_return_t __block ret = report->GetLength(&length);
     if (ret != kIOReturnSuccess) {
@@ -173,6 +171,7 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             uint64_t length;
             IOMemoryDescriptor* out = nullptr;
             ret = dmaCmd->GetPreparation(&offset, &length, &out);
+            // 得到 offset = 0, length = 64
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation ret = %d", ret);
             //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
             //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
@@ -183,17 +182,12 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
                     os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
                     dump(outMemMap->GetAddress(), outMemMap->GetLength()); // Debug Dump
-                    // 用 notifyArgs 回傳 Frame 內容
+                    // 用 notifyArgs 回傳 Frame 內容，將資料copy過去
+                    os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(ivars->notifyArgs) = %lu", sizeof(ivars->notifyArgs));
+                    //memset((void*) ivars->notifyArgs, 0, HID_RPT_SIZE);
                     memcpy((void*) ivars->notifyArgs, (void*) outMemMap->GetAddress(), outMemMap->GetLength());
                     //dump((uint64_t)(ivars->notifyArgs), outMemMap->GetLength()); // Debug Dump
                     OSSafeReleaseNULL(outMemMap);
-                    //
-//                    const uint32_t nextIdx = currentIdx + 1;
-//                    if (nextIdx < ivars->outputBufferFrameCount) {
-//                        ivars->outputFrameIdx = nextIdx;
-//                    } else {
-//                        ivars->outputFrameIdx = 0;
-//                    }
                 }
             }
             ret = dmaCmd->CompleteDMA(0);
@@ -208,13 +202,12 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     }
     //----------------------------
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
-    const uint32_t asyncDataCount = HID_RPT_SIZE / sizeof(uint64_t);
-    // TEST: action or ivars->notifyFrameAction => 兩個不一樣
+    const uint32_t asyncDataCount = HID_RPT_SIZE / sizeof(uint64_t);    // 64 / 8 = 8
+    // action or ivars->notifyFrameAction => 兩個不一樣
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "action = %llu", (uint64_t) action);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "ivars->notifyFrameAction = %llu", (uint64_t) ivars->notifyFrameAction);
     AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, asyncDataCount);
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion DataCount = %u", asyncDataCount);
-    ivars->outputFrameIdx++;    // 單純計數
     //AsyncCompletion(ivars->notifyFrameAction, kIOReturnSuccess, ivars->notifyArgs, currentIdx);
     //os_log(OS_LOG_DEFAULT, LOG_PREFIX "AsyncCompletion(%u) args = %llu", currentIdx, (uint64_t) ivars->notifyArgs[0]);
     const int kSleepMs = 10;
@@ -337,43 +330,40 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
     // 區分不同的 selector，對應到不同的行為
     // 交由 IODispatchQueue 來處理
     switch (selector) {
-        case kSoftU2FUserClientSendFrame: {
+        case kSoftU2FUserClientSendFrame:
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "<<<<<<< SendFrame >>>>>>>");
-            IOMemoryDescriptor* __block report = nullptr;
             if (arguments->structureInput != nullptr) {
                 // ---------<DEBUG DUMP>----------
                 dump((uint64_t) arguments->structureInput->getBytesNoCopy(), arguments->structureInput->getLength());
                 // -------------------------------
+                IOMemoryDescriptor* __block report = nullptr;
                 BufMemoryUtils::createMemoryDescriptorFromData(arguments->structureInput,
                                                                kIOMemoryDirectionIn,
                                                                &report);
                 if (report != nullptr) {
-                    //IODispatchQueue* queue = nullptr;
-                    //ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
-                    //if (queue != NULL) {
+                    IODispatchQueue* queue = nullptr;
+                    ivars->provider->CopyDispatchQueue(kIOServiceDefaultQueueName, &queue);
+                    if (queue != NULL) {
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Prepare");
-                        //queue->DispatchSync(^{
+                        queue->DispatchSync(^{
                             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Start");
                             sendReport(report);
                             os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : Finish");
-                        //});
-                    //} else {
-                        //os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
-                    //}
-                    //ret = sendReport(report);
-                    //OSSafeReleaseNULL(report);
+                        });
+                    } else {
+                        os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
+                    }
                     OSSafeReleaseNULL(report);
                 }
+                return kIOReturnSuccess;
             }
-            
-            return kIOReturnSuccess;
+            break;
             //【傳統方法】透過此法呼叫 sSendFrame, reference的資料是傳入 U2FHID_FRAME，不需要自己轉換。
             //  應該是在宣告時有指定 checkStructureInputSize
             // sSendFrame, 0, sizeof(U2FHID_FRAME), 0, 0
             //dispatch = &sMethods[kSoftFidoUserClientSendFrame];
             //target = this;
             //return super::ExternalMethod(selector, arguments, dispatch, target, reference);
-        }
         // 測試直接回傳
 //        case kSoftFidoUserClientNotifyFrame + 1: {
 //            os_log(OS_LOG_DEFAULT, LOG_PREFIX "ExternalMethod NotifyFrame (Sync)");
