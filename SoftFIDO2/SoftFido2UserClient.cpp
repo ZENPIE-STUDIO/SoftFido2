@@ -29,6 +29,7 @@ struct SoftFido2UserClient_IVars {
     com_gotrustid_SoftFIDO2_SoftFido2Driver* provider;
     SoftFido2Device* fido2Device;
     //
+    IODMACommand* dmaCmd = nullptr;
     // uint64 * kIOUserClientAsyncArgumentsCountMax(16) = 8 * 16 = 128
     // 可以傳 2 個 FRAME，我用來傳 1個
     OSAction*       notifyFrameAction = nullptr;
@@ -60,6 +61,24 @@ void SoftFido2UserClient::free() {
     super::free();
 }
 
+IODMACommand* newDMACommand(SoftFido2Device* device) {
+    IODMACommandSpecification spec;
+    spec.options = kIODMACommandSpecificationNoOptions;
+    spec.maxAddressBits = 64;
+
+    IODMACommand* dmaCmd = nullptr;
+    kern_return_t ret = IODMACommand::Create(device, kIODMACommandCreateNoOptions, &spec, &(dmaCmd));
+    if (dmaCmd == nullptr) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed (%d)", ret);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
+    } else {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
+    }
+    return dmaCmd;
+}
+
 kern_return_t IMPL(SoftFido2UserClient, Start) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Start");
 
@@ -88,6 +107,8 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
         return kIOReturnError;
     }
     
+    // DMA Command
+    ivars->dmaCmd = newDMACommand(ivars->fido2Device);
 //    ret = IODispatchQueue::Create("commandGate", 0 /*options*/ , 0 /*priority*/, &(ivars->commandQueue));
 //    if (ret != kIOReturnSuccess) {
 //        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODispatchQueue::Create CommandGate Failed : %d", ret);
@@ -101,7 +122,10 @@ kern_return_t IMPL(SoftFido2UserClient, Start) {
 kern_return_t IMPL(SoftFido2UserClient, Stop) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Stop");
     if (ivars->fido2Device != nullptr) {
-        ivars->fido2Device->release();
+        OSSafeReleaseNULL(ivars->fido2Device);
+    }
+    if (ivars->dmaCmd != nullptr) {
+        OSSafeReleaseNULL(ivars->dmaCmd);
     }
     return Stop(provider, SUPERDISPATCH);
 }
@@ -151,22 +175,13 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     kern_return_t ret = kIOReturnSuccess;
     // <<< IODMACommand >>>
     IOUserClientAsyncArgumentsArray notifyArgs;
+    if (ivars->dmaCmd == nullptr) {
+        ivars->dmaCmd = newDMACommand(ivars->fido2Device);
+    }
+    IODMACommand* dmaCmd = ivars->dmaCmd;
     uint64_t flags = 0;
     uint32_t dmaSegmentCount = 1;
     IOAddressSegment segments[32];
-    IODMACommandSpecification spec;
-    spec.options = kIODMACommandSpecificationNoOptions;
-    spec.maxAddressBits = 64;
-    IODMACommand* dmaCmd = nullptr;
-    ret = IODMACommand::Create(ivars->fido2Device, kIODMACommandCreateNoOptions, &spec, &dmaCmd);
-    if (dmaCmd == nullptr) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create failed (%d)", ret);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create system err = %x", err_get_system(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create    sub err = %x", err_get_sub(ret));
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create   code err = %x", err_get_code(ret));
-        return ret;
-    }
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand::Create Success");
     ret = dmaCmd->PrepareForDMA(kIODMACommandPrepareForDMANoOptions, report, 0, 0, &flags, &dmaSegmentCount, segments);
     if (ret == kIOReturnSuccess) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA flags = %llu", flags);
@@ -200,7 +215,6 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         ret = dmaCmd->CompleteDMA(kIODMACommandCompleteDMANoOptions);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->CompleteDMA ret = %d", ret);
     }
-    OSSafeReleaseNULL(dmaCmd);
     //----------------------------
     // 目前是用 notifyArgs 裝載 Frame 資料，64 bytes
     const uint32_t asyncDataCount = HID_RPT_SIZE / sizeof(uint64_t);    // 64 / 8 = 8
