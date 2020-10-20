@@ -129,33 +129,20 @@ kern_return_t SoftFido2Device::setReport(IOMemoryDescriptor* report,
         case kIOHIDReportTypeCount: os_log(OS_LOG_DEFAULT, LOG_PREFIX "setReport (Count)"); break;
     }
     //tryIODMACommand(this, report);
-    // 心得：結果這裡options=0
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOOptionBits = %u", options);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   completionTimeout = %u", completionTimeout);
-    /*_IOMDPrivateState state;
-    ret = report->_CopyState(&state);
-    if (ret == kIOReturnSuccess) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.length = %llu", state.length);
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "state.options = %llu", state.options);
-        // state.options = 33050
-        //    可知 kIOMemoryPersistent | kIOMemoryMapCopyOnWrite
-        //          kIOMemoryHostOnly | 2000(_kIOMemorySourceSegment?)
-        //          kIOMemoryTypeUIO
-    } else {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "_CopyState failed = %d", ret);
-    }*/
+    // IOOptionBits, completionTimeout 都是 0
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOOptionBits = %u", options);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   completionTimeout = %u", completionTimeout);
     // 用 User Client 去處理接收到的資料
     SoftFido2UserClient *userClient = ivars->provider;
     if (userClient != nullptr) {
         ret = userClient->frameReceived(report, action);
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "   frameReceived ret = %d", ret);
     }
+    CompleteReport(action, kIOReturnSuccess, HID_RPT_SIZE);
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     const int kSleepMs = 1;
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "   IOSleep %d ms", kSleepMs);
     IOSleep(kSleepMs);
-    //
-    CompleteReport(action, kIOReturnSuccess, HID_RPT_SIZE);
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "   CompleteReport");
     return ret;
 }
 
