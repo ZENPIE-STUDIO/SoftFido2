@@ -146,16 +146,16 @@ kern_return_t IMPL(SoftFido2UserClient, dump) {
 }
 
 kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
-    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
-    kern_return_t __block ret = kIOReturnSuccess;
-//    uint64_t length = 0;
-//    kern_return_t __block ret = report->GetLength(&length);
-//    if (ret != kIOReturnSuccess) {
-//        os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength Failed!");
-//        return ret;
-//    }
-    // (結果)都是 64bytes
-    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "   report->GetLength = %llu", length);
+    //os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived Report = %p", report);
+    //kern_return_t __block ret = kIOReturnSuccess;
+    uint64_t length = 0;
+    kern_return_t __block ret = report->GetLength(&length);
+    if (ret != kIOReturnSuccess) {
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived report->GetLength Failed!");
+        return ret;
+    }
+    // 結果都是 64bytes
+    os_log(OS_LOG_DEFAULT, LOG_PREFIX "frameReceived report->GetLength = %llu", length);
     // --------------------------------
     if (ivars->dispatchQueue != nullptr) {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : Prepare");
@@ -166,6 +166,8 @@ kern_return_t IMPL(SoftFido2UserClient, frameReceived) {
         });
     } else {
         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Recv] DispatchSync : NULL");
+        // 沒有queue就直接執行（目前不會進來這）
+        ret = innerFrameReceived(report, action);
     }
     // --------------------------------
     return ret;
