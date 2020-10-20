@@ -33,7 +33,7 @@ struct SoftFido2UserClient_IVars {
     IODispatchQueue*        dispatchQueue = nullptr;
 
     // uint64 * kIOUserClientAsyncArgumentsCountMax(16) = 8 * 16 = 128
-    // 可以傳 2 個 FRAME，我用來傳 1個
+    // 可以傳 2 個 HID FRAME，我只用來傳 1個
     OSAction*       notifyFrameAction = nullptr;
     //
     //IOMemoryDescriptor*     outputDescriptor = nullptr;  // structureOutputDescriptor
@@ -226,30 +226,6 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
     return ret;
 }
 
-/*
- CopyClientMemoryForType(\
-     uint64_t type,\
-     uint64_t * options,\
-     IOMemoryDescriptor ** memory,\
-     OSDispatchMethod supermethod = NULL);\
- */
-//kern_return_t IMPL(SoftFido2UserClient, CopyClientMemoryForType) {
-//    os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType = %llu", type);
-//    kern_return_t ret;
-//    if (type == 0) {
-//        IOBufferMemoryDescriptor* buffer = nullptr;
-//        ret = IOBufferMemoryDescriptor::Create(kIOMemoryDirectionInOut, 128 /* capacity */, 8 /* alignment */, &buffer);
-//        if (ret != kIOReturnSuccess) {
-//            os_log(OS_LOG_DEFAULT, LOG_PREFIX "CopyClientMemoryForType > IOBufferMemoryDescriptor::Create failed: 0x%x", ret);
-//        } else {
-//            *memory = buffer; // returned with refcount 1
-//        }
-//    } else {
-//        ret = super::CopyClientMemoryForType(type, options, memory);
-//    }
-//    return ret;
-//}
-
 #pragma mark - Send
 
 //SoftFido2UserClient *target, uint64_t* reference, IOUserClientMethodArguments *arguments
@@ -353,6 +329,7 @@ kern_return_t SoftFido2UserClient::ExternalMethod(uint64_t selector,
                         });
                     } else {
                         os_log(OS_LOG_DEFAULT, LOG_PREFIX "[Send] DispatchQueue : NULL");
+                        sendReport(report); // 沒有 DispatchQueue就直接送
                     }
                     OSSafeReleaseNULL(report);
                 }
