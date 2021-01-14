@@ -71,14 +71,16 @@ void tryIODMACommand(SoftFido2Device* device, IOMemoryDescriptor* report) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "tryIODMACommand");
     // <<< IODMACommand >>>
     IODMACommandSpecification spec;
+    bzero(&spec, sizeof(IODMACommandSpecification));
+    spec.options = kIODMACommandSpecificationNoOptions;
     spec.maxAddressBits = 64;
     IODMACommand* dmaCmd = nullptr;
-    kern_return_t ret = IODMACommand::Create(device, 0, &spec, &dmaCmd);
+    kern_return_t ret = IODMACommand::Create(device, kIODMACommandCreateNoOptions, &spec, &dmaCmd);
     if (ret == kIOReturnSuccess) {
         uint64_t flags = 0;
         uint32_t dmaSegmentCount = 1;
         IOAddressSegment segments[32];
-        dmaCmd->PrepareForDMA(0, report, 0, 0, &flags, &dmaSegmentCount, segments);
+        dmaCmd->PrepareForDMA(kIODMACommandPrepareForDMANoOptions, report, 0, 0, &flags, &dmaSegmentCount, segments);
         if (ret == kIOReturnSuccess) {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA flags = %llu", flags);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "IODMACommand PrepareForDMA SegmentCount = %u", dmaSegmentCount);

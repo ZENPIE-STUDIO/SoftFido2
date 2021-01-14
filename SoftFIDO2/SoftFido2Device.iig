@@ -16,7 +16,7 @@
 
 class SoftFido2Device: public IOUserHIDDevice
 {
-public:    
+public:
     virtual bool init() override;
     virtual void free() override;
     
