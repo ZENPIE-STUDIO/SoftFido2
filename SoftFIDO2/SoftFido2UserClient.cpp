@@ -202,18 +202,14 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation offset = %llu", offset);
         //os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->GetPreparation length = %llu", length);
         if (out != nullptr) {
-            uint64_t address = 0;
-            uint64_t length = 0;
-            if (0 == out->Map(0, 0, 64, 0, &address, &length)) {
-                
-            }
             // 試過了…
             //  kIOMemoryMapReadOnly
             //  kIOMemoryMapCacheModeDefault
             //  kIOMemoryMapCacheModeWriteThrough
             //  kIOMemoryMapCacheModeInhibit - 除了第1筆，其他outMemMap CreateMapping address 都一樣
             IOMemoryMap* outMemMap = nullptr;
-            out->CreateMapping(kIOMemoryMapCacheModeDefault, 0, 0, 0, 0, &outMemMap);
+            ret = out->CreateMapping(kIOMemoryMapCacheModeDefault, 0, 0, 0, 0, &outMemMap);
+            os_log(OS_LOG_DEFAULT, LOG_PREFIX "out->CreateMapping ret = %d", ret);
             if (outMemMap != nullptr) {
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
                 os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
