@@ -133,15 +133,20 @@ kern_return_t IMPL(SoftFido2UserClient, Stop) {
     return Stop(provider, SUPERDISPATCH);
 }
 
+// After macOS Big Sur 11.2 : cannot dump data to log...-_- show  <private>
+// Fix: os_log Use "%{public}s"
 kern_return_t IMPL(SoftFido2UserClient, dump) {
     uint8_t* byteArray = reinterpret_cast<uint8_t*>(address);
     // 因為是 64/16，所以不特地處理其他長度
+    const size_t kBufferSize = 64;
+    char buffer[kBufferSize];
     for (int i = 0; i < length; i+=16) {
-        os_log(OS_LOG_DEFAULT, LOG_PREFIX "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
-               byteArray[i], byteArray[i+1], byteArray[i+2], byteArray[i+3],
-               byteArray[i+4], byteArray[i+5], byteArray[i+6], byteArray[i+7],
-               byteArray[i+8], byteArray[i+9], byteArray[i+10], byteArray[i+11],
-               byteArray[i+12], byteArray[i+13], byteArray[i+14], byteArray[i+15]);
+        snprintf(buffer, kBufferSize, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                 byteArray[i], byteArray[i+1], byteArray[i+2], byteArray[i+3],
+                 byteArray[i+4], byteArray[i+5], byteArray[i+6], byteArray[i+7],
+                 byteArray[i+8], byteArray[i+9], byteArray[i+10], byteArray[i+11],
+                 byteArray[i+12], byteArray[i+13], byteArray[i+14], byteArray[i+15]);
+        os_log(OS_LOG_DEFAULT, LOG_PREFIX "%{public}s", buffer);
     }
     return kIOReturnSuccess;
 }

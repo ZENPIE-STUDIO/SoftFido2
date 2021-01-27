@@ -59,7 +59,7 @@ kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, Stop) {
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "Stop");
     return Stop(provider, SUPERDISPATCH);
 }
-
+// App呼叫 IOServiceOpen 來 Start 新的 Service，系統就會呼叫這個 function
 kern_return_t IMPL(com_gotrustid_SoftFIDO2_SoftFido2Driver, NewUserClient) {
     kern_return_t ret = kIOReturnSuccess;
     os_log(OS_LOG_DEFAULT, LOG_PREFIX "NewUserClient");
