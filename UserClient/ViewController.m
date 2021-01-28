@@ -76,9 +76,9 @@
         }
         return ok;
     }];
-    NSLog(@"FidoDriverUserClient Start OK ✅");
-    NSLog(@"To view the Log, enter the command in the console:");
-    NSLog(@"$ log show --predicate 'sender == \"sysextd\" or sender CONTAINS[c] \"Fido\" or sender CONTAINS[c] \"HID\"' --info --debug --last 2m");
+    NSLog(@"FidoDriverUserClient Start OK ✅\n\
+          To view the Log, enter the command in the console:\n\
+           > log show --predicate 'sender == \"sysextd\" or sender CONTAINS[c] \"Fido\" or sender CONTAINS[c] \"HID\"' --info --debug --last 2m");
 }
 
 #pragma mark - U2fHidDelegate
