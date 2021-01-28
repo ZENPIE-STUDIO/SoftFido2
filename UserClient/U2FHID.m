@@ -9,7 +9,6 @@
 #import "U2FHID.h"
 #import "softu2f.h"
 #import "UserKernelShared.h"
-//#import "Utils.h"
 
 static U2FHID* gU2fHid = nil;
 
@@ -32,14 +31,24 @@ static U2FHID* gU2fHid = nil;
     }
 }
 
-//- (void) initSoftU2fOutputLogFolder {
-//    NSString* strPath = [[NSString alloc] initWithUTF8String:kSoftU2FLogOutputFolder];
-//    if ([Utils createFolderIfNotExists:strPath]) {
-//        LOGD(@"OK");
-//    } else {
-//        LOGD(@"FAILED!");
-//    }
-//}
+BOOL createFolderIfNotExists(NSString* path) {
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    if ([fileMgr fileExistsAtPath:path])
+        return YES;
+    NSError *myError = nil;
+    if ([fileMgr createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&myError])
+        return YES;
+    return NO;
+}
+
+- (void) initSoftU2fOutputLogFolder {
+    NSString* strPath = [[NSString alloc] initWithUTF8String:kSoftU2FLogOutputFolder];
+    if (createFolderIfNotExists(strPath)) {
+        NSLog(@"U2FHID initSoftU2fOutputLogFolder OK");
+    } else {
+        NSLog(@"U2FHID initSoftU2fOutputLogFolder FAILED!");
+    }
+}
 
 - (instancetype) init {
     boolean_t useDriverKit = true;//false;
@@ -49,9 +58,9 @@ static U2FHID* gU2fHid = nil;
     boolean_t succ = false;
     if (self = [super init]) {
         // 利用 SOFTU2F_DEBUG flag，當作要輸出 Softu2f log file
-//#ifdef OUTPUT_SOFTU2F_LOGFILE
-//        [self initSoftU2fOutputLogFolder];
-//#endif
+#ifdef OUTPUT_SOFTU2F_LOGFILE
+        [self initSoftU2fOutputLogFolder];
+#endif
         _isUnexpectedStop = YES;    // 突然離開就是非預期，使用者呼叫stop才會設為no
         _ctx = softu2f_init(SOFTU2F_DEBUG, useDriverKit);
         if (_ctx != NULL) {

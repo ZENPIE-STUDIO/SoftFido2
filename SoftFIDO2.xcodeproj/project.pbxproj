@@ -83,7 +83,6 @@
 		279525D025C299C1001C06C9 /* log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = log.c; sourceTree = "<group>"; };
 		279525D125C299C1001C06C9 /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
 		279525D225C299C1001C06C9 /* u2f_hid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = u2f_hid.h; sourceTree = "<group>"; };
-		279525D325C299C1001C06C9 /* UserKernelShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserKernelShared.h; sourceTree = "<group>"; };
 		279525D425C299C1001C06C9 /* softu2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = softu2f.h; sourceTree = "<group>"; };
 		279525D525C299C1001C06C9 /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = log.h; sourceTree = "<group>"; };
 		279525D625C299C1001C06C9 /* softu2f.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = softu2f.c; sourceTree = "<group>"; };
@@ -199,12 +198,11 @@
 		279525CF25C299C1001C06C9 /* SoftU2FDriverLib */ = {
 			isa = PBXGroup;
 			children = (
+				279525D225C299C1001C06C9 /* u2f_hid.h */,
+				279525D525C299C1001C06C9 /* log.h */,
 				279525D025C299C1001C06C9 /* log.c */,
 				279525D125C299C1001C06C9 /* internal.h */,
-				279525D225C299C1001C06C9 /* u2f_hid.h */,
-				279525D325C299C1001C06C9 /* UserKernelShared.h */,
 				279525D425C299C1001C06C9 /* softu2f.h */,
-				279525D525C299C1001C06C9 /* log.h */,
 				279525D625C299C1001C06C9 /* softu2f.c */,
 			);
 			path = SoftU2FDriverLib;
@@ -596,7 +594,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 2P68G9Z44L;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = UserClient/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -619,7 +617,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 2P68G9Z44L;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = UserClient/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

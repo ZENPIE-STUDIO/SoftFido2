@@ -9,6 +9,7 @@
 #ifndef UserKernelShared_h
 #define UserKernelShared_h
 
+#define kSoftU2FLogOutputFolder "/Library/Application Support/SoftFIDO2/SoftU2fLog"
 
 #define kSoftU2FDriverClassName "SoftU2FDriver"     // KEXT
 #define kSoftFidoDriverClassName "com_gotrustid_SoftFIDO2_SoftFido2Driver"  // DriverKit

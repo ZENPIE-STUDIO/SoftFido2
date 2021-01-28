@@ -35,6 +35,10 @@
         return;
     }
     _u2fhid = [U2FHID new];
+    if (_u2fhid == nil) {
+        NSLog(@"FidoDriverUserClient Start ❌");
+        return;
+    }
     _u2fhid.delegate = self;
     ViewController* __weak weakSelf = self;
     [_u2fhid handleType:CTAPHID_CBOR Handler:^bool(softu2f_hid_message * _Nonnull msg) {
@@ -48,6 +52,7 @@
         }
         return ok;
     }];
+    NSLog(@"FidoDriverUserClient Start OK ✅");
 }
 
 #pragma mark - U2fHidDelegate
