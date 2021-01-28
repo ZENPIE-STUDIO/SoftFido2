@@ -80,7 +80,7 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
             LOGD(@"%ld", result);
             break;
     }
-    LOGD(@"exit");
+    LOGD(@"didFinishWithResult exit");
     //exit(EXIT_SUCCESS);
     [DriverKitManager closeAllRunningInstance];
 }
@@ -105,7 +105,7 @@ static NSString* const kDriverExtBundleId = @"com.gotrustid.SoftFIDO2";
         case OSSystemExtensionErrorAuthorizationRequired: LOGD(@"AuthorizationRequired"); break;
         default: LOGD(@"Other Error : %@", error.localizedDescription); break;
     }
-    LOGD(@"exit");
+    LOGD(@"didFailWithError exit");
     //exit(EXIT_SUCCESS);
     [DriverKitManager closeAllRunningInstance];
     //NSLog(@"didFailWithError localizedFailureReason : %@", error.localizedFailureReason);
