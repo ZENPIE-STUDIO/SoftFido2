@@ -22,16 +22,11 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
 + Entitilements - **Need to apply to Apple**
 
 ```xml
-	<key>com.apple.developer.driverkit</key>
-	<true/>
-	<key>com.apple.developer.driverkit.family.hid.device</key>
-	<true/>
-	<key>com.apple.developer.driverkit.family.hid.eventservice</key>
-	<true/>
-	<key>com.apple.developer.driverkit.family.hid.virtual.device</key>
-	<true/>
-	<key>com.apple.developer.driverkit.transport.hid</key>
-	<true/>
+	<key>com.apple.developer.driverkit</key> <true/>
+	<key>com.apple.developer.driverkit.family.hid.device</key> <true/>
+	<key>com.apple.developer.driverkit.family.hid.eventservice</key> <true/>
+	<key>com.apple.developer.driverkit.family.hid.virtual.device</key> <true/>
+	<key>com.apple.developer.driverkit.transport.hid</key> <true/>
     <key>com.apple.developer.driverkit.transport.usb</key>
 				:
 ```
@@ -40,8 +35,7 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
 
 ```xml
     <!-- Can solve the problem of not being able to apply for 'com.apple.developer.driverkit.userclient-access' -->
-    <key>com.apple.developer.driverkit.allow-any-userclient-access</key>
-    <true/>
+    <key>com.apple.developer.driverkit.allow-any-userclient-access</key> <true/>
 ```
 
 
@@ -109,9 +103,19 @@ FidoDriverUserClient Start OK ✅
 
 ----
 
-### IOKit / DriverKit  API 對應
+### IOKit / DriverKit  對應
 
-#### 資料接收
++ Class 對照表
+
+|      | SoftU2F (Kext) - IOKit                   | SoftFIDO2 (Dext) - DriverKit                                |
+| ---- | ---------------------------------------- | ----------------------------------------------------------- |
+|      | class `SoftU2FDriver` : IOService        | class `com_gotrustid_SoftFIDO2_SoftFido2Driver` : IOService |
+|      | class `SoftU2FUserClient` : IOUserClient | class `SoftFido2UserClient` : IOUserClient                  |
+|      | class `SoftU2FDevice` : IOHIDDevice      | class `SoftFido2Device` : IOUserHIDDevice                   |
+
++ Function不是 1vs1的關係，Source Code也不多，就不列表了。只擷取資料接收的部份程式碼，在下方比較。
+
+#### Data reception
 
 > 在 UserClient 的 frameReceived，從收到的 `IOMemoryDescriptor *report` 讀取 HID Frame data
 
@@ -158,6 +162,7 @@ if (ret == kIOReturnSuccess) {
 
 ### References
 
++ WWDC 2019 - [702.System Extensions and DriverKit](https://developer.apple.com/videos/play/wwdc2019/702/)
 + [VirtualHIDDevice-Development](https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/blob/master/DEVELOPMENT.md)
-
 + [Debugging and Testing System Extensions](https://developer.apple.com/documentation/driverkit/debugging_and_testing_system_extensions)
+
