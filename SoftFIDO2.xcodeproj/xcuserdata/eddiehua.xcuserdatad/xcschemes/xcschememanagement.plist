@@ -4,8 +4,10 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>FidoDriverManager.xcscheme</key>
+		<key>FidoDriverManager.xcscheme_^#shared#^_</key>
 		<dict>
+			<key>isShown</key>
+			<true/>
 			<key>orderHint</key>
 			<integer>2</integer>
 		</dict>
@@ -13,13 +15,6 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
-		</dict>
-		<key>SoftFido2App.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-			<key>orderHint</key>
-			<integer>1</integer>
 		</dict>
 		<key>UserClient.xcscheme_^#shared#^_</key>
 		<dict>
