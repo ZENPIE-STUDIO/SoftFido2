@@ -144,7 +144,7 @@
             }
             // kIOReturnNotOpen (2CD)
             // kIOReturnTimeout (2D6) <= After updated macOS 11.1 Beta (20C5048k)
-            [NSThread sleepForTimeInterval:1.1];
+            [NSThread sleepForTimeInterval:0.1];
         }
     });
 //    IOHIDDeviceClose(_softu2fDevice, kIOHIDOptionsTypeNone);

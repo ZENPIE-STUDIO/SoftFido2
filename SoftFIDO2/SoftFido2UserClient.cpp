@@ -197,6 +197,8 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
         if (dmaSegmentCount > 0) {
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.address = %llu", segments[0].address);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "dmaCmd->PrepareForDMA segments.length = %llu", segments[0].length);
+            // 此時的 address 不能access，會讓Driver死掉
+            //dump(segments[0].address, segments[0].length); // Debug Dump
         }
         uint64_t offset;
         uint64_t length;
@@ -216,8 +218,8 @@ kern_return_t IMPL(SoftFido2UserClient, innerFrameReceived) {
             ret = out->CreateMapping(kIOMemoryMapCacheModeDefault, 0, 0, 0, 0, &outMemMap);
             os_log(OS_LOG_DEFAULT, LOG_PREFIX "out->CreateMapping ret = %d", ret);
             if (outMemMap != nullptr) {
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping address = %llu", outMemMap->GetAddress());
-                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap CreateMapping length = %llu", outMemMap->GetLength());
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap address = %llu", outMemMap->GetAddress());
+                os_log(OS_LOG_DEFAULT, LOG_PREFIX "outMemMap length = %llu", outMemMap->GetLength());
                 dump(outMemMap->GetAddress(), outMemMap->GetLength()); // Debug Dump
                 // 用 notifyArgs 回傳 Frame 內容，將資料copy過去
                 //os_log(OS_LOG_DEFAULT, LOG_PREFIX "sizeof(notifyArgs) = %lu", sizeof(notifyArgs)); => 128
