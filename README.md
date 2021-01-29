@@ -101,9 +101,8 @@ FidoDriverUserClient Start OK ✅
 2. Run `UserClient` to test SoftFIDO2 Driver
 3. Show Log
 
-<video src="./BackupDriverKitLog/TestSoftFIDO2.mp4"></video>
-
-
+<!-- <video src="./BackupDriverKitLog/TestSoftFIDO2.mp4"></video> -->
+<video src="https://github.com/EddieHua-GoTrustID/SoftFido2/blob/master/BackupDriverKitLog/TestSoftFIDO2.mp4"></video>
 
 ----
 
