@@ -43,17 +43,18 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
 #### Manager (FidoDriverManager)：Activate or Deactivate Driver
 
 + Setup XCode > Build Phases > Embed System Extensions : `com.gotrustid.SoftFIDO2.dext`
-+ Entitilements - 不需申請
++ Entitilements
 
 ```xml
 		<!-- Permission to activate or deactivate system extensions. -->
-    <key>com.apple.developer.system-extension.install</key>
-    <true/>
+    <key>com.apple.developer.system-extension.install</key> <true/>
 ```
 
 #### Client (UserClient)：Communicate with Driver
 
 + Entitilements - **Need to apply to Apple**
+  + After Big Sur 11.2, If you do not have this entitlement, cannot communicate with the Driver
+    + When Open Driver Return Error =  kIOReturnNotPermitted (0x2e2)
 
 ```xml
 		<!-- After macOS Big Sur 11.2 "mandatory requirement" -->
@@ -63,18 +64,14 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
     </array>
 ```
 
-+ ℹ️ [xnu-7195.50.7.100.1的IOKitKeys.h](https://github.com/clemensg/xnu/blob/master/iokit/IOKit/IOKitKeys.h) 中找到一個未公開的 entitlement for driver，可以不需要上述 entitlement
++ ℹ️ [xnu-7195.50.7.100.1的IOKitKeys.h](https://github.com/clemensg/xnu/blob/master/iokit/IOKit/IOKitKeys.h) Found an undisclosed entitlement for driver，the above entitlement `com.apple.developer.driverkit.userclient-access` may not be needed 
   + `com.apple.developer.driverkit.allow-any-userclient-access`  => 加到 SoftFIDO2
 
 ### How to Debug
 
 + [Disable SIP (System Integrity Protection)](https://developer.apple.com/documentation/security/disabling_and_enabling_system_integrity_protection?language=objc)：Bypass Code-Signing, Notarization Check
-  + 如果沒關掉，設定Entitlement及Provisioning Profile後，可能會Build不過。
-  + XCode Build Settings > Signing
-    + Code Signing Entitlement
-    + Provisioning Profile
 + Enable Activation from Any Directory：`$ systemextensionsctl developer on`
-  + 如果沒設定，會限制在`/Applications` 下的App才能Activate Driver
+  + If not set, it will be restricted to App under /Applications to activate Driver 
 + 觀看LOG
 
 ```bash
@@ -103,9 +100,9 @@ FidoDriverUserClient Start OK ✅
 
 ----
 
-### IOKit / DriverKit  對應
+### IOKit vs DriverKit
 
-+ Class 對照表
++ Class comparison
 
 |      | SoftU2F (Kext) - IOKit                   | SoftFIDO2 (Dext) - DriverKit                                |
 | ---- | ---------------------------------------- | ----------------------------------------------------------- |
@@ -132,6 +129,7 @@ report->complete();
 
 
 + SoftFIDO2 (Dext)：需透過 IODMACommand存取 IOMemoryDescriptor
+  + 注意：DMACommand 在 macOS BigSur Beta9 (DriverKit 20) 、Xcode 12之後才支援
 
 ```objc
 uint64_t flags = 0;
