@@ -7,10 +7,7 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
 
 ### Known Issues
 
-+ ⚠️When receiving HID Frame, data loss will occur. ⚠️
-
-  + WebAuthn failed...
-  + Wrote a test program using IOHIDDeviceSetReport API，Send 64bytes (00 ~ 09)，Lost rate about 30%...
++ ⚠️When receiving HID Frame, receive unexpected data usually. ⚠️
 
 
 
@@ -64,8 +61,8 @@ The FIDO Authenticator is developed using DriverKit Frameworks, in order to port
     </array>
 ```
 
-+ ℹ️ [xnu-7195.50.7.100.1的IOKitKeys.h](https://github.com/clemensg/xnu/blob/master/iokit/IOKit/IOKitKeys.h) Found an undisclosed entitlement for driver，the above entitlement `com.apple.developer.driverkit.userclient-access` may not be needed 
-  + `com.apple.developer.driverkit.allow-any-userclient-access`  => 加到 SoftFIDO2
++ ℹ️ [xnu-7195.50.7.100.1.  IOKitKeys.h](https://github.com/clemensg/xnu/blob/master/iokit/IOKit/IOKitKeys.h) Found an undisclosed entitlement for driver，the above entitlement `com.apple.developer.driverkit.userclient-access` may not be needed 
+  + `com.apple.developer.driverkit.allow-any-userclient-access`  => Add to SoftFIDO2
 
 ### How to Debug
 
@@ -98,6 +95,16 @@ FidoDriverUserClient Start OK ✅
 
 
 
+### Demo Video
+
+1. Run `FidoDriverManager` to install / activate SoftFIDO2 Driver
+2. Run `UserClient` to test SoftFIDO2 Driver
+3. Show Log
+
+<video src="./BackupDriverKitLog/TestSoftFIDO2.mp4"></video>
+
+
+
 ----
 
 ### IOKit vs DriverKit
@@ -114,22 +121,22 @@ FidoDriverUserClient Start OK ✅
 
 #### Data reception
 
-> 在 UserClient 的 frameReceived，從收到的 `IOMemoryDescriptor *report` 讀取 HID Frame data
+> In the frameReceived of UserClient, read the HID Frame data from the received `IOMemoryDescriptor *report`
 
-+ SoftU2F (Kext)：簡單的 Map過後，就可以直接存取 IOMemoryDescriptor 內容
++ SoftU2F (Kext)：After mapping, you can directly access the IOMemoryDescriptor content 
 
 ```objc
 report->prepare()
 IOMemoryMap *reportMap = report->map();
-// 可以直接 Access Memory 的資料
+// Can directly access
 reportMap->getAddress()
 report->complete();
 ```
 
 
 
-+ SoftFIDO2 (Dext)：需透過 IODMACommand存取 IOMemoryDescriptor
-  + 注意：DMACommand 在 macOS BigSur Beta9 (DriverKit 20) 、Xcode 12之後才支援
++ SoftFIDO2 (Dext)：Requires access `IOMemoryDescriptor` via `IODMACommand`
+  + Note: DMACommand is supported after macOS BigSur Beta9 (DriverKit 20) and Xcode 12 
 
 ```objc
 uint64_t flags = 0;

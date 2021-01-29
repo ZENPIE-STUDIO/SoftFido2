@@ -1,0 +1,219 @@
+gtqa@MacMiniBigSur ZZ.DaemonDebug % log show --predicate 'sender == "sysextd" or sender CONTAINS[c] "Fido" or sender CONTAINS[c] "HID"' --info --debug --last 2m
+Filtering the log data using "sender == "sysextd" OR sender CONTAINS[c] "Fido" OR sender CONTAINS[c] "HID""
+Timestamp                       Thread     Type        Activity             PID    TTL  
+2021-01-29 14:18:06.909006+0800 0x2f96     Info        0x0                  0      0    kernel: (IOHIDFamily) IOHIDLibUserClient:0x1000006b3 open
+2021-01-29 14:18:06.909019+0800 0x2f96     Info        0x0                  0      0    kernel: (IOHIDFamily) IOHIDLibUserClient:0x1000006b3 open client not privileged
+2021-01-29 14:18:06.909046+0800 0x2f96     Debug       0x0                  0      0    kernel: (IOHIDFamily) SoftFido2Device:0x1000006ab open by IOHIDLibUserClient 0x1000006b3 (0x0)
+2021-01-29 14:18:06.909058+0800 0x2f96     Default     0x0                  0      0    kernel: (IOHIDFamily) SoftFido2Device:0x1000006ab multiple opens from client 0x1000006b3
+2021-01-29 14:18:06.909064+0800 0x2f96     Info        0x0                  0      0    kernel: (IOHIDFamily) IOHIDLibUserClient:0x1000006b3 resourceNotificationGated client not privileged
+2021-01-29 14:18:06.909071+0800 0x2f96     Info        0x0                  0      0    kernel: (IOHIDFamily) IOHIDLibUserClient:0x1000006b3 setValid: from true to true
+2021-01-29 14:18:06.909387+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 9 ----------------------
+2021-01-29 14:18:06.909393+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:06.909407+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:06.909411+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:06.909416+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:06.909429+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:06.909434+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:06.909439+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 30990540
+2021-01-29 14:18:06.909443+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:06.909458+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:06.909511+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:06.909516+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372779212
+2021-01-29 14:18:06.909520+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:06.909533+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:06.909540+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 94 40 00 00 00 00 00 00 90 40 01 00 00 00
+2021-01-29 14:18:06.909548+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 44 00 00 00
+2021-01-29 14:18:06.909555+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ac 0c 00 00 58 00 00 00 58 00 00 00 ff ff ff ff
+2021-01-29 14:18:06.909587+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:06.909592+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:06.909597+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:06.909603+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:06.909615+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:06.909619+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.012065+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 10 ----------------------
+2021-01-29 14:18:07.012077+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.012090+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.012094+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.012106+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.012120+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.012124+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.012128+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 14785164
+2021-01-29 14:18:07.012132+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.012147+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.012205+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.012211+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372781708
+2021-01-29 14:18:07.012215+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.012228+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02
+2021-01-29 14:18:07.012237+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02
+2021-01-29 14:18:07.012245+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02
+2021-01-29 14:18:07.012252+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02
+2021-01-29 14:18:07.012276+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.012283+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.012287+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.012294+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.012306+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.012311+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.113455+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 11 ----------------------
+2021-01-29 14:18:07.113465+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.113474+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.113476+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.113479+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.113488+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.113491+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.113494+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 26112204
+2021-01-29 14:18:07.113496+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.113505+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.113545+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.113548+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372779212
+2021-01-29 14:18:07.113551+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.113558+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.113563+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 94 40 00 00 00 00 00 00 90 40 01 00 00 00
+2021-01-29 14:18:07.113567+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 44 00 00 00
+2021-01-29 14:18:07.113571+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ac 0c 00 00 58 00 00 00 58 00 00 00 ff ff ff ff
+2021-01-29 14:18:07.113588+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.113591+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.113593+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.113598+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.113614+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.113619+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.215605+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 12 ----------------------
+2021-01-29 14:18:07.215642+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.215680+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.215685+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.215691+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.215727+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.215733+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.215739+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 8305052
+2021-01-29 14:18:07.215744+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.215774+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.215898+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.215905+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372781468
+2021-01-29 14:18:07.215910+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.215934+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 04 13 00 00 58 00 00 00 58 00 00 00 ff ff ff ff
+2021-01-29 14:18:07.215944+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 58 00 00 00 58 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.215951+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 86 00 00 00 a0 86 01 00 0c 01 00 00 f0 12 c2 b7
+2021-01-29 14:18:07.215971+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 85 7f 00 00 00 00 00 00 00 00 00 00 4e 40 01 00
+2021-01-29 14:18:07.216047+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.216054+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.216057+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.216065+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.216076+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.216080+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.319571+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 13 ----------------------
+2021-01-29 14:18:07.319580+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.319589+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.319592+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.319595+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.319604+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.319607+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.319610+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 67205404
+2021-01-29 14:18:07.319612+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.319620+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.319658+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.319661+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372781340
+2021-01-29 14:18:07.319664+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.319671+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05
+2021-01-29 14:18:07.319676+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05
+2021-01-29 14:18:07.319680+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05
+2021-01-29 14:18:07.319693+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05
+2021-01-29 14:18:07.319717+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.319721+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.319725+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.319731+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.319742+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.319746+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.420874+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 14 ----------------------
+2021-01-29 14:18:07.420886+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.420899+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.420903+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.420906+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.420920+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.420924+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.420928+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 95669100
+2021-01-29 14:18:07.420931+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.420945+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.420996+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.420999+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372781932
+2021-01-29 14:18:07.421001+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.421010+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 ef be ad de ef be ad de c1 02 5c 3f
+2021-01-29 14:18:07.421014+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 43 0b d1 db 00 9e 2b 51 93 ff ff ff 00 00 00 00
+2021-01-29 14:18:07.421018+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 b0 01 00
+2021-01-29 14:18:07.421022+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 1b 00 00 00
+2021-01-29 14:18:07.421039+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.421042+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.421045+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.421049+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.421058+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.421061+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.523032+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 15 ----------------------
+2021-01-29 14:18:07.523042+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.523051+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.523054+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.523057+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.523066+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.523069+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.523072+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 78672028
+2021-01-29 14:18:07.523075+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.523084+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.523116+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.523127+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372779164
+2021-01-29 14:18:07.523131+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.523142+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.523149+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.523156+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 94 40 00 00 00 00 00 00 90 40 00 00 00 00
+2021-01-29 14:18:07.523163+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.523184+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.523189+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.523193+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.523199+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.523210+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.523214+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.624797+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 16 ----------------------
+2021-01-29 14:18:07.624812+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.624826+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.624830+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.624834+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.624847+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.624851+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.624855+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 24413564
+2021-01-29 14:18:07.624859+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.624872+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.624908+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.624911+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372780412
+2021-01-29 14:18:07.624914+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.624922+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ef be ad de ef be ad de ef be ad de ef be ad de
+2021-01-29 14:18:07.624926+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ef be ad de ef be ad de ef be ad de ef be ad de
+2021-01-29 14:18:07.624929+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ef be ad de ef be ad de ef be ad de ef be ad de
+2021-01-29 14:18:07.624933+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] ef be ad de ef be ad de ef be ad de ef be ad de
+2021-01-29 14:18:07.624949+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.624953+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.624955+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.624959+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.624968+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.624972+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+2021-01-29 14:18:07.727899+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] ----------------------- 17 ----------------------
+2021-01-29 14:18:07.727910+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device] setReport (Output)
+2021-01-29 14:18:07.727920+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] frameReceived report->GetLength = 64
+2021-01-29 14:18:07.727923+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Prepare
+2021-01-29 14:18:07.727926+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Start
+2021-01-29 14:18:07.727936+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA flags = 2
+2021-01-29 14:18:07.727947+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA SegmentCount = 1
+2021-01-29 14:18:07.727953+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.address = 54941148
+2021-01-29 14:18:07.727957+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->PrepareForDMA segments.length = 64
+2021-01-29 14:18:07.727971+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->GetPreparation ret = 0
+2021-01-29 14:18:07.728029+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] out->CreateMapping ret = 0
+2021-01-29 14:18:07.728034+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap address = 4372780508
+2021-01-29 14:18:07.728038+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] outMemMap length = 64
+2021-01-29 14:18:07.728049+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.728057+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.728064+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.728071+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2021-01-29 14:18:07.728098+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] dmaCmd->CompleteDMA ret = 0
+2021-01-29 14:18:07.728104+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] AsyncCompletion DataCount = 8
+2021-01-29 14:18:07.728108+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][UserClient] [Recv] DispatchSync : Finish
+2021-01-29 14:18:07.728114+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    frameReceived ret = 0
+2021-01-29 14:18:07.728125+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    CompleteReport
+2021-01-29 14:18:07.728130+0800 0x29b0     Default     0x0                  0      0    kernel: (com.gotrustid.SoftFIDO2.dext) [SoftFido2][Device]    IOSleep 1 ms
+--------------------------------------------------------------------------------------------------------------------
+Log      - Default:        208, Info:                4, Debug:             1, Error:          0, Fault:          0
+Activity - Create:           0, Transition:          0, Actions:           0
