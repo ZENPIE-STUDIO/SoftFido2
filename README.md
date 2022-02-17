@@ -1,3 +1,9 @@
+# Note: This repo is deprecated.
+
+> Apple 後來建議申請Entitlement : com.apple.developer.hid.virtual.device 
+> 並使用 IOHIDUserDeviceCreateWithProperties 建立 Virtual HID.
+> 這樣事情就簡單多了😮‍💨
+
 # SoftFido2
 
 The FIDO Authenticator is developed using DriverKit Frameworks, in order to port SoftU2F to macOS Big Sur.
